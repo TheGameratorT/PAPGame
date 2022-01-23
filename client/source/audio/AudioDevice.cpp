@@ -2,15 +2,16 @@
 
 #include <stdexcept>
 
-AudioDevice::AudioDevice(const char* deviceName)
+AudioDevice AudioDevice::open(const char* deviceName)
 {
-	m_alDevice = alcOpenDevice(deviceName);
-	if (!m_alDevice)
+	ALCdevice* alcDevice = alcOpenDevice(deviceName);
+	if (!alcDevice)
 		throw std::runtime_error("Could not open audio device");
+	return AudioDevice(alcDevice);
 }
 
 void AudioDevice::close()
 {
-	if (!alcCloseDevice(m_alDevice))
+	if (!alcCloseDevice(m_alcDevice))
 		throw std::runtime_error("Could not close audio device");
 }

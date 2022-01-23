@@ -1,17 +1,20 @@
 #pragma once
 
-#include <AL/al.h>
 #include <AL/alc.h>
 
 class AudioDevice
 {
 public:
-	explicit AudioDevice(const char* deviceName);
+	constexpr explicit AudioDevice(ALCdevice* alcDevice) :
+		m_alcDevice(alcDevice)
+	{}
+
+	static AudioDevice open(const char* deviceName);
 	void close();
 
-	[[nodiscard]] ALCdevice* c_obj()
-	{ return m_alDevice; }
+	[[nodiscard]] constexpr ALCdevice* c_obj()
+	{ return m_alcDevice; }
 
 private:
-	ALCdevice* m_alDevice;
+	ALCdevice* m_alcDevice;
 };

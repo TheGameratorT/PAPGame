@@ -10,8 +10,10 @@
 #include "audio/AudioContext.hpp"
 #include "audio/AudioDevice.hpp"
 #include "audio/AudioSource.hpp"
-#include "audio/OGGAudioStream.hpp"
-#include "audio/WAVAudioStream.hpp"
+#include "audio/AudioSupplier.hpp"
+#include "audio/AudioDataSupplier.hpp"
+#include "audio/ogg/OGGAudio.hpp"
+#include "audio/wav/WAVAudio.hpp"
 
 int main()
 {
@@ -19,32 +21,44 @@ int main()
 
 	std::ios_base::sync_with_stdio(false);
 
-	AudioDevice audioDevice(nullptr);
-	AudioContext audioContext(audioDevice);
-	audioContext.makeCurrent();
-	AudioSource audioSource = AudioSource::create();
+	try {
+		AudioDevice audioDevice = AudioDevice::open(nullptr);
+		AudioContext audioContext = AudioContext::create(audioDevice);
+		audioContext.makeCurrent();
+		AudioSource audioSource = AudioSource::generate();
 
-	std::ifstream file("assets/sample.ogg", std::ios_base::binary);
-	if (!file.is_open())
-	{
-		std::cout << "Failed to open file" << std::endl;
-		return 1;
+		std::ifstream ifs1("assets/sample.ogg", std::ios_base::binary);
+		if (!ifs1.is_open()) {
+			throw std::runtime_error("error opening audio file");
+		}
+
+		AudioData audioData = OGGAudio::readAll(ifs1);
+
+		AudioDataSupplier audioSupplier1 = audioData.makeSupplier();
+		OGGAudioStreamSupplier audioSupplier2 = OGGAudio::makeStreamSupplier(ifs1);
+
+		audioSupplier2.attach(audioSource);
+		audioSupplier2.setup();
+
+		audioSource.play();
+
+		while (audioSource.getState() == AudioSource::State::Playing)
+		{
+			audioSupplier2.supply();
+			std::this_thread::sleep_for(1ms);
+		}
+
+		audioSupplier2.destroy();
+
+		ifs1.close();
+
+		audioSource.destroy();
+		AudioContext::clearCurrent();
+		audioContext.destroy();
+		audioDevice.close();
+	} catch (const std::exception& ex) {
+		std::cout << "You suck at coding because:\n" << ex.what() << std::endl;
 	}
-
-	OGGAudioStream audioStream(file);
-	audioSource.setStream(audioStream);
-	audioSource.play();
-
-	while (audioSource.getState() == AudioSource::State::Playing)
-	{
-		audioStream.update(audioSource);
-		std::this_thread::sleep_for(1s);
-		if (audioSource.getState() != AudioSource::State::Playing)
-			audioSource.play();
-	}
-
-	file.close();
-	audioDevice.close();
 
 	/*if (!GLFW::init())
 		return 1;

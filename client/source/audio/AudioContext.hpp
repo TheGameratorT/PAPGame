@@ -1,40 +1,32 @@
 #pragma once
 
 #include <AL/alc.h>
-#include <utility>
 
-#include "AudioDevice.hpp"
+class AudioDevice;
 
 class AudioContext
 {
 public:
-	AudioContext(const AudioContext& obj) = delete;
-	AudioContext& operator=(const AudioContext& obj) = delete;
+	constexpr explicit AudioContext(ALCcontext* alcContext) :
+		m_alcContext(alcContext)
+	{}
 
-	AudioContext(AudioContext&& other) noexcept
-	{ m_alcContext = other.m_alcContext; }
+	static AudioContext create(AudioDevice& device);
 
-	AudioContext& operator=(AudioContext&& other) noexcept
-	{
-		m_alcContext = other.m_alcContext;
-		return *this;
-	}
-
-	explicit AudioContext(AudioDevice& device);
-	~AudioContext();
+	inline void destroy()
+	{ alcDestroyContext(m_alcContext); }
 
 	void makeCurrent();
-	bool isCurrent();
-	static void clearCurrent();
 
-	static AudioContext* getCurrent()
-	{ return sm_current; }
+	[[nodiscard]] inline static AudioContext getCurrent()
+	{ return AudioContext(alcGetCurrentContext()); }
 
-	[[nodiscard]] ALCcontext* c_obj()
+	inline static void clearCurrent()
+	{ alcMakeContextCurrent(nullptr); }
+
+	[[nodiscard]] constexpr ALCcontext* c_obj()
 	{ return m_alcContext; }
 
 private:
-	static AudioContext* sm_current;
-
 	ALCcontext* m_alcContext;
 };

@@ -1,36 +1,10 @@
 #pragma once
 
 #include <AL/al.h>
-#include <AL/alc.h>
-#include <utility>
-
-class AudioStream;
 
 class AudioSource
 {
 public:
-	~AudioSource();
-
-	AudioSource(const AudioSource& obj) = delete;
-	AudioSource& operator=(const AudioSource& obj) = delete;
-
-	AudioSource(AudioSource&& other) noexcept
-	{
-		m_source = other.m_source;
-		m_loop = other.m_loop;
-		m_stream = other.m_stream;
-	}
-
-	AudioSource& operator=(AudioSource&& other) noexcept
-	{
-		m_source = other.m_source;
-		m_loop = other.m_loop;
-		m_stream = other.m_stream;
-		return *this;
-	}
-
-	static AudioSource create();
-
 	enum class State
 	{
 		Initial = 0x1011,
@@ -39,33 +13,38 @@ public:
 		Stopped = 0x1014
 	};
 
-	void play() const;
-	void stop() const;
-	void pause() const;
-	void rewind() const;
-	void setVolume(float value) const;
-	[[nodiscard]] float getVolume() const;
-	[[nodiscard]] State getState() const;
+	constexpr explicit AudioSource(ALuint source) :
+		m_source(source)
+	{}
 
-	void setLooping(bool value)
-	{ m_loop = value; }
+	static AudioSource generate();
+	inline void destroy() { alDeleteSources(1, &m_source); }
 
-	[[nodiscard]] bool getLooping() const
-	{ return m_loop; }
+	inline void play() const { alSourcePlay(m_source); }
+	inline void stop() const { alSourceStop(m_source); }
+	inline void pause() const { alSourcePause(m_source); }
+	inline void rewind() const { alSourceRewind(m_source); }
 
-	void setStream(AudioStream& stream);
+	inline void setVolume(float value) const
+	{ alSourcef(m_source, AL_GAIN, value); }
 
-	[[nodiscard]] AudioStream& getStream() const
-	{ return *m_stream; }
+	[[nodiscard]] inline float getVolume() const
+	{
+		ALfloat value;
+		alGetSourcef(m_source, AL_GAIN, &value);
+		return value;
+	}
 
-	[[nodiscard]] ALuint c_obj() const
+	[[nodiscard]] inline State getState() const
+	{
+		ALint state;
+		alGetSourcei(m_source, AL_SOURCE_STATE, &state);
+		return static_cast<State>(state);
+	}
+
+	[[nodiscard]] constexpr ALuint c_obj() const
 	{ return m_source; }
 
 private:
-	explicit AudioSource(ALuint source);
-
-protected:
 	ALuint m_source;
-	bool m_loop;
-	AudioStream* m_stream;
 };

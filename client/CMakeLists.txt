@@ -6,12 +6,13 @@ project(ClientTest VERSION 1.0)
 # release mode flags
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     # static link if gcc
-    if((NOT MSVC) AND WIN32)
-        set(Boost_USE_STATIC_LIBS ON)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-        set(BUILD_SHARED_LIBS OFF)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-    endif()
+    ## if((NOT MSVC) AND WIN32)
+    ##     add_compile_definitions(AL_LIBTYPE_STATIC GLEW_STATIC)
+    ##     set(Boost_USE_STATIC_LIBS ON)
+    ##     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    ##     set(BUILD_SHARED_LIBS OFF)
+    ##     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+    ## endif()
 endif()
 
 # specify the C++ standard
@@ -48,6 +49,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     wsock32
     ws2_32
+    # winmm
     glfw
     GLEW::GLEW
     ${OPENAL_LIBRARY}
