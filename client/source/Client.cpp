@@ -14,6 +14,7 @@
 #include "audio/AudioDataSupplier.hpp"
 #include "audio/ogg/OGGAudio.hpp"
 #include "audio/wav/WAVAudio.hpp"
+#include "audio/GameAudio.hpp"
 
 int main()
 {
@@ -26,32 +27,46 @@ int main()
 		AudioContext audioContext = AudioContext::create(audioDevice);
 		audioContext.makeCurrent();
 		AudioSource audioSource = AudioSource::generate();
+		audioSource.setVolume(0.25f);
+		GameAudio audio;
 
-		std::ifstream ifs1("assets/sample.ogg", std::ios_base::binary);
-		if (!ifs1.is_open()) {
-			throw std::runtime_error("error opening audio file");
-		}
+		audio.loadMusic("sample1", "assets/sample.ogg", AudioContainer::OGG);
+		audio.loadSound("sample2", "assets/susdogdoinbruh.ogg", AudioContainer::OGG);
+		audio.playMusic(audioSource, "sample1");
 
-		AudioData audioData = OGGAudio::readAll(ifs1);
+		bool prevCtrlHeld = false;
+		bool prevShiftHeld = false;
 
-		AudioDataSupplier audioSupplier1 = audioData.makeSupplier();
-		OGGAudioStreamSupplier audioSupplier2 = OGGAudio::makeStreamSupplier(ifs1);
-
-		audioSupplier2.attach(audioSource);
-		audioSupplier2.setup();
-
-		audioSource.play();
-
-		while (audioSource.getState() == AudioSource::State::Playing)
+		while (true)
 		{
-			audioSupplier2.supply();
+			bool ctrlHeld = GetKeyState(VK_CONTROL) & 0x8000;
+			bool ctrlDown = !prevCtrlHeld && ctrlHeld;
+			prevCtrlHeld = ctrlHeld;
+
+			bool shiftHeld = GetKeyState(VK_SHIFT) & 0x8000;
+			bool shiftDown = !prevShiftHeld && shiftHeld;
+			prevShiftHeld = shiftHeld;
+
+			audio.update();
+
+			if (ctrlDown)
+			{
+				audio.playMusic(audioSource, "sample1");
+				audio.setLooping(audioSource, true);
+			}
+			else if (shiftDown)
+			{
+				audio.playSound(audioSource, "sample2");
+				audio.setLooping(audioSource, true);
+			}
+
+			if (GetKeyState('H') & 0x8000)
+				break;
+
 			std::this_thread::sleep_for(1ms);
 		}
 
-		audioSupplier2.destroy();
-
-		ifs1.close();
-
+		audio.destroy();
 		audioSource.destroy();
 		AudioContext::clearCurrent();
 		audioContext.destroy();
@@ -60,7 +75,7 @@ int main()
 		std::cout << "You suck at coding because:\n" << ex.what() << std::endl;
 	}
 
-	/*if (!GLFW::init())
+	if (!GLFW::init())
 		return 1;
 
 	Window window = Window::create(640, 480, "My Title");
@@ -71,13 +86,13 @@ int main()
 	{
 		GLFW::pollEvents();
 		window.swapBuffers();
-	}*/
+	}
 
 	/*auto* game = new Game();
 	game->run();
 	delete game;*/
 
-	//GLFW::terminate();
+	GLFW::terminate();
 
 	return 0;
 }

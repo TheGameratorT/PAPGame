@@ -1,6 +1,6 @@
 #include "WAVAudioReader.hpp"
 
-#include <limits>
+#include <string>
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>

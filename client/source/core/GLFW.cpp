@@ -16,9 +16,4 @@ namespace GLFW
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		return true;
 	}
-
-	void terminate()
-	{
-		glfwTerminate();
-	}
 }

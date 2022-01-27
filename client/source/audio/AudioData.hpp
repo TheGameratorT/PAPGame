@@ -15,7 +15,7 @@ public:
 		m_format(format)
 	{}
 
-	[[nodiscard]] inline char* getData() const
+	[[nodiscard]] inline const char* getData() const
 	{ return m_data.get(); }
 
 	[[nodiscard]] constexpr std::size_t getDataSize() const
@@ -27,7 +27,7 @@ public:
 	[[nodiscard]] constexpr ALenum getFormat() const
 	{ return m_format; }
 
-	constexpr AudioDataSupplier makeSupplier()
+	[[nodiscard]] constexpr AudioDataSupplier makeSupplier() const
 	{ return AudioDataSupplier(*this); }
 
 private:

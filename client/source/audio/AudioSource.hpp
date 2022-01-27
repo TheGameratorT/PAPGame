@@ -35,6 +35,32 @@ public:
 		return value;
 	}
 
+	inline void setLooping(bool value) const
+	{ alSourcei(m_source, AL_LOOPING, value); }
+
+	[[nodiscard]] inline bool getLooping() const
+	{
+		ALint value;
+		alGetSourcei(m_source, AL_LOOPING, &value);
+		return value;
+	}
+
+	inline void setBuffer(ALuint buffer) const
+	{ alSourcei(m_source, AL_BUFFER, static_cast<ALint>(buffer)); }
+
+	[[nodiscard]] inline ALuint getBuffer() const
+	{
+		ALint value;
+		alGetSourcei(m_source, AL_BUFFER, &value);
+		return static_cast<ALuint>(value);
+	}
+
+	inline void setPosition(float x, float y, float z) const
+	{
+		float value[] = {x, y, z};
+		alSourcefv(m_source, AL_POSITION, value);
+	}
+
 	[[nodiscard]] inline State getState() const
 	{
 		ALint state;

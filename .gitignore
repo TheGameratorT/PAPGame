@@ -3,3 +3,4 @@
 /bak
 /build
 /cmake-build-*
+/client/libs

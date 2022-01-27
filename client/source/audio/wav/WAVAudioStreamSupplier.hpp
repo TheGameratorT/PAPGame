@@ -1,7 +1,7 @@
 #pragma once
 
 #include <istream>
-#include <al.h>
+#include <AL/al.h>
 
 #include "../AudioSupplier.hpp"
 #include "WAVAudioReader.hpp"
@@ -15,6 +15,9 @@ public:
 	void supply() override;
 	void destroy() override;
 
+	void setLooping(bool looping) override;
+	bool getLooping() override;
+
 private:
 	constexpr static std::size_t NUM_BUFFERS = 4;
 	constexpr static std::size_t BUFFER_SIZE = 65536;
@@ -25,4 +28,5 @@ private:
 	ALuint m_buffers[NUM_BUFFERS];
 	ALenum m_format;
 	std::int32_t m_sampleRate;
+	bool m_looping;
 };

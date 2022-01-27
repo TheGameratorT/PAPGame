@@ -1,6 +1,7 @@
 #include "OGGAudioReader.hpp"
 
 #include <limits>
+#include <string>
 
 OGGAudioReader::OGGAudioReader(std::istream& input) :
 	m_input(input),
@@ -47,6 +48,11 @@ OGGAudioReader::OGGAudioReader(std::istream& input) :
 
 std::size_t OGGAudioReader::read(char* buffer, std::size_t length)
 {
+	/*
+	 * The maximum size that ov_read can read
+	 * in one call is 4096 bytes, to circumvent
+	 * this, read in a loop until it's all read.
+	 * */
 	std::size_t bytesRead = 0;
 	do {
 		std::size_t bytesToRead = length - bytesRead;
@@ -66,7 +72,7 @@ std::size_t OGGAudioReader::read(char* buffer, std::size_t length)
 		if (result == OV_EINVAL)
 			throw std::runtime_error("OV_EINVAL found while reading OGG file");
 		if (result == 0)
-			break;
+			break; // End of file reached, exit loop.
 		bytesRead += result;
 	} while (bytesRead < length);
 	return bytesRead;

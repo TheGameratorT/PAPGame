@@ -9,7 +9,7 @@ class AudioData;
 class AudioDataSupplier : public AudioSupplier
 {
 public:
-	constexpr explicit AudioDataSupplier(AudioData& audioData) :
+	constexpr explicit AudioDataSupplier(const AudioData& audioData) :
 		m_audioData(audioData),
 		m_buffer(0)
 	{}
@@ -18,7 +18,10 @@ public:
 	void supply() override;
 	void destroy() override;
 
+	void setLooping(bool looping) override;
+	bool getLooping() override;
+
 private:
-	AudioData& m_audioData;
+	const AudioData& m_audioData;
 	ALuint m_buffer;
 };

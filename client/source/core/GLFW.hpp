@@ -5,7 +5,9 @@
 namespace GLFW
 {
 	bool init();
-	void terminate();
+
+	inline void terminate()
+	{ glfwTerminate(); }
 
 	inline void pollEvents()
 	{ glfwPollEvents(); }

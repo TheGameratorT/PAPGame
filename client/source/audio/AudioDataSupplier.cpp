@@ -23,5 +23,16 @@ void AudioDataSupplier::supply()
 
 void AudioDataSupplier::destroy()
 {
+	getSource().setBuffer(NULL);
 	alDeleteBuffers(1, &m_buffer);
+}
+
+void AudioDataSupplier::setLooping(bool looping)
+{
+	getSource().setLooping(true);
+}
+
+bool AudioDataSupplier::getLooping()
+{
+	return getSource().getLooping();
 }
