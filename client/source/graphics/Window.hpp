@@ -6,54 +6,25 @@
 class Window
 {
 public:
-	inline ~Window()
-	{ glfwDestroyWindow(m_window); }
+	constexpr Window() :
+		m_window(nullptr)
+	{}
+
+	explicit constexpr Window(GLFWwindow* window) :
+		m_window(window)
+	{}
 
 	inline static Window create(int width, int height, const char* title)
-	{ return {width, height, title}; }
-
-	inline void swapBuffers()
-	{ glfwSwapBuffers(m_window); }
-
-	inline void setTitle(const char* title)
-	{ glfwSetWindowTitle(m_window, title); }
-
-	inline void makeContextCurrent()
-	{ glfwMakeContextCurrent(m_window); }
-
-	[[nodiscard]] inline bool shouldClose()
-	{ return glfwWindowShouldClose(m_window); }
-
-private:
-	inline Window(int width, int height, const char* title)
-	{ m_window = glfwCreateWindow(width, height, title, nullptr, nullptr); }
-
-	GLFWwindow* m_window;
-};
-
-#ifdef UNUSED___
-
-#pragma once
-
-#include <string>
-#include <GLFW/glfw3.h>
-
-class Window
-{
-public:
-	Window() = default;
-
-	inline ~Window()
 	{
-		if (m_window != nullptr)
-			glfwDestroyWindow(m_window);
+		GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+		return Window(window);
 	}
 
-	inline void init(int width, int height, const char* title)
-	{ m_window = glfwCreateWindow(width, height, title, nullptr, nullptr); }
-
 	inline void swapBuffers()
 	{ glfwSwapBuffers(m_window); }
+
+	inline GLFWframebuffersizefun setFramebufferSizeCallback(GLFWframebuffersizefun callback)
+	{ return glfwSetFramebufferSizeCallback(m_window, callback); }
 
 	inline void setTitle(const char* title)
 	{ glfwSetWindowTitle(m_window, title); }
@@ -64,8 +35,9 @@ public:
 	[[nodiscard]] inline bool shouldClose()
 	{ return glfwWindowShouldClose(m_window); }
 
-private:
-	GLFWwindow* m_window = nullptr;
-};
+	inline void destroy()
+	{ glfwDestroyWindow(m_window); }
 
-#endif
+private:
+	GLFWwindow* m_window;
+};

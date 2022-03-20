@@ -13,6 +13,10 @@ public:
 		Stopped = 0x1014
 	};
 
+	constexpr AudioSource() :
+		m_source(0)
+	{}
+
 	constexpr explicit AudioSource(ALuint source) :
 		m_source(source)
 	{}

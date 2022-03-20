@@ -7,6 +7,10 @@ class AudioDevice;
 class AudioContext
 {
 public:
+	constexpr AudioContext() :
+		m_alcContext(nullptr)
+	{}
+
 	constexpr explicit AudioContext(ALCcontext* alcContext) :
 		m_alcContext(alcContext)
 	{}

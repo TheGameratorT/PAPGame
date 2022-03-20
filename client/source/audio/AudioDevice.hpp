@@ -5,6 +5,10 @@
 class AudioDevice
 {
 public:
+	constexpr AudioDevice() :
+		m_alcDevice(nullptr)
+	{}
+
 	constexpr explicit AudioDevice(ALCdevice* alcDevice) :
 		m_alcDevice(alcDevice)
 	{}

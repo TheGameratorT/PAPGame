@@ -23,7 +23,7 @@ void AudioDataSupplier::supply()
 
 void AudioDataSupplier::destroy()
 {
-	getSource().setBuffer(NULL);
+	getSource().setBuffer(0);
 	alDeleteBuffers(1, &m_buffer);
 }
 

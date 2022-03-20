@@ -96,6 +96,35 @@ static inline AudioSupplier* makeStreamSupplier(std::istream& istream, AudioCont
 	}
 }
 
+void GameAudio::init()
+{
+	m_audioDevice = AudioDevice::open(nullptr);
+	m_audioContext = AudioContext::create(m_audioDevice);
+	m_audioContext.makeCurrent();
+	m_mainSource = AudioSource::generate();
+	m_stopUpdater = false;
+	m_updaterThread = std::thread([this](){
+		while (!m_stopUpdater) {
+			update();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	});
+}
+
+void GameAudio::destroy()
+{
+	m_stopUpdater = true;
+	m_updaterThread.join();
+
+	for (int i = 0; i < m_soundInstances.size(); i++)
+		removeSoundInstance(0);
+	m_mainSource.destroy();
+
+	AudioContext::clearCurrent();
+	m_audioContext.destroy();
+	m_audioDevice.close();
+}
+
 void GameAudio::loadMusic(const std::string &name, const std::filesystem::path &path, AudioContainer container)
 {
 	m_loadedMusics.push_back(std::make_unique<LoadedMusic>(name, path, container));
@@ -207,14 +236,6 @@ void GameAudio::update()
 			removeSoundInstance(i);
 			i--;
 		}
-	}
-}
-
-void GameAudio::destroy()
-{
-	for (int i = 0; i < m_soundInstances.size(); i++)
-	{
-		removeSoundInstance(0);
 	}
 }
 

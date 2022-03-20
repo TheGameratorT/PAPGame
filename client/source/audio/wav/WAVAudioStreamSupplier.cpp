@@ -32,7 +32,7 @@ void WAVAudioStreamSupplier::supply()
 
 void WAVAudioStreamSupplier::destroy()
 {
-	getSource().setBuffer(NULL);
+	getSource().setBuffer(0);
 	alDeleteBuffers(NUM_BUFFERS, m_buffers);
 }
 
