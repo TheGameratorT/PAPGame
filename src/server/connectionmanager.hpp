@@ -11,7 +11,7 @@ class ConnectedClientHandle
 {
 public:
 	ConnectedClientHandle(u32 id, Network::ConnectedClientPtr connection, bool didHandshake) :
-		m_id(id), m_connection(std::move(connection)), m_listener(nullptr), m_didHandshake(didHandshake)
+		m_id(id), m_connection(std::move(connection)), m_listener(nullptr), m_didHandshake(didHandshake), m_userPtr(nullptr)
 	{}
 
 	~ConnectedClientHandle();
@@ -22,8 +22,15 @@ public:
 	[[nodiscard]] Network::ConnectedClientPtr getConnection() const
 	{ return m_connection; }
 
-	void setListener(PacketListener* listener)
+	constexpr void setListener(PacketListener* listener)
 	{ m_listener = listener; }
+
+	/*constexpr void setUserPtr(void* ptr)
+	{ m_userPtr = ptr; }
+
+	template<typename T>
+	[[nodiscard]] constexpr T* getUserPtr() const
+	{ return static_cast<T*>(m_userPtr); }*/
 
 	[[nodiscard]] constexpr bool didHandshake() const
 	{ return m_didHandshake; }
@@ -36,6 +43,7 @@ private:
 	Network::ConnectedClientPtr m_connection;
 	PacketListener* m_listener;
 	bool m_didHandshake;
+	//void* m_userPtr;
 };
 
 class ConnectionManager

@@ -5,6 +5,8 @@
 #include "render/gle/texture2d.hpp"
 
 #include "render/texture.hpp"
+#include "input/keyhandle.hpp"
+#include "gui/image.hpp"
 
 class SplashScene : public Scene
 {
@@ -18,10 +20,11 @@ public:
 	void onDestroyRequest() override;
 
 private:
-	int render = 0;
-	int lastNetState = 0;
-	Texture splashTexture1;
-	Texture splashTexture2;
-	Texture splashTexture3;
-	Texture splashTexture4;
+	Texture gameByTexture;
+	Texture logoTexture;
+	mGUI::Image gameByWidget;
+	mGUI::Image logoWidget;
+	bool usingBiLinearLogo = false;
+	bool switchingScene = false;
+	float timer = 0;
 };
