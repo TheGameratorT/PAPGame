@@ -4,7 +4,7 @@
 #include "image/image.hpp"
 #include "arc+/image/imageio.hpp"
 
-void Texture::load(const Path& path)
+void Texture::load(const Path& path, GLE::TextureFilter magFilter)
 {
 	Image image = ImageIO::loadE<Pixel::RGBA8>(path);
 
@@ -23,7 +23,7 @@ void Texture::load(const Path& path)
 	m_texture2D.setWrapU(GLE::TextureWrap::Repeat);
 	m_texture2D.setWrapV(GLE::TextureWrap::Repeat);
 	m_texture2D.setMinFilter(GLE::TextureFilter::Trilinear, true);
-	m_texture2D.setMagFilter(GLE::TextureFilter::Bilinear);
+	m_texture2D.setMagFilter(magFilter);
 
 	m_texture2D.generateMipmaps();
 }

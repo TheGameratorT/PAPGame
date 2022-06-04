@@ -7,6 +7,7 @@
 #include "render/texture.hpp"
 #include "input/keyhandle.hpp"
 #include "gui/image.hpp"
+#include "gui/container.hpp"
 
 class SplashScene : public Scene
 {
@@ -20,11 +21,11 @@ public:
 	void onDestroyRequest() override;
 
 private:
+	mGUI::Container canvas;
 	Texture gameByTexture;
 	Texture logoTexture;
 	mGUI::Image gameByWidget;
 	mGUI::Image logoWidget;
-	bool usingBiLinearLogo = false;
 	bool switchingScene = false;
 	float timer = 0;
 };

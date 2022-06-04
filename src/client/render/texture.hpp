@@ -6,7 +6,7 @@
 class Texture
 {
 public:
-	void load(const Path& path);
+	void load(const Path& path, GLE::TextureFilter magFilter = GLE::TextureFilter::Bilinear);
 	void destroy();
 
 	[[nodiscard]] constexpr GLE::Texture2D& getGleTex2D()

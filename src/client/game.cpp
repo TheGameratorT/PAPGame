@@ -14,6 +14,7 @@
 #include "configfile.hpp"
 #include "objects.hpp"
 #include "scene/splashscene.hpp"
+#include "scene/titlescene.hpp"
 #include "render/renderer.hpp"
 #include "loadingscreen.hpp"
 #include "render/fader.hpp"
@@ -26,7 +27,6 @@
 #include "network/server.hpp"
 #include "network/packettable.hpp"
 
-#include <GLFW/glfw3.h>
 using namespace Network;
 
 #define PKT_LSTNR_JUMP(id, type, func) case id: func(static_cast<const type&>(packet)); break
@@ -245,6 +245,11 @@ namespace Game
 				setFullscreen(!fullscreen);
 		});
 
+		bindKey(KeyCode::F12, [](KeyState state){
+			if (state == KeyState::Pressed)
+				Game::reload();
+		});
+
 		config.save();
 
 		createScene<SplashScene>();
@@ -324,6 +329,17 @@ namespace Game
 		delete window;
 	}
 
+	void reload()
+	{
+		if (currentScene != nullptr)
+		{
+			currentScene->onDestroy();
+			LoadingScreen::close();
+			delete currentScene;
+		}
+		createScene<TitleScene>();
+	}
+
 	void update(double timeNow)
 	{
 		tickDelta = static_cast<float>(timeNow - lastTickTime);
@@ -334,9 +350,7 @@ namespace Game
 		{
 			currentFps = std::lround(1.0f / frameDelta);
 			currentTps = std::lround(1.0f / tickDelta);
-			std::ostringstream oss;
-			oss << "Hypestayo | FPS: " << currentFps << " | TPS: " << currentTps;
-			window->setTitle(oss.str());
+			window->setTitle(String::format("Hypestayo | FPS: %d | TPS: %d", currentFps, currentTps));
 			fpsTimer = 0.0f;
 		}
 

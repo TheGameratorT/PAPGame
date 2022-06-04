@@ -3,7 +3,8 @@
 #include <vector>
 
 #include "common.hpp"
-#include "iwidget.hpp"
+#include "widget.hpp"
+#include "container.hpp"
 #include "input/keydefs.hpp"
 #include "input/keyhandle.hpp"
 
@@ -15,14 +16,14 @@ public:
 	void init();
 	void destroy();
 
-	void addWidget(IWidget& widget);
-	void removeWidget(IWidget& widget);
+	[[nodiscard]] constexpr Container& getContainer() { return m_container; }
+
 	void update();
 	void render();
 	void onMouseClick(Key key, KeyState state);
 
 private:
-	std::vector<IWidget*> m_widgets;
+	Container m_container;
 	KeyHandle m_leftClick;
 	KeyHandle m_rightClick;
 };

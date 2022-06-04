@@ -16,45 +16,58 @@ void Interface::destroy()
 	Game::unbindKey(m_rightClick);
 }
 
-void Interface::addWidget(IWidget& widget)
-{
-	m_widgets.push_back(&widget);
-}
-
-void Interface::removeWidget(IWidget& widget)
-{
-	auto it = std::find(m_widgets.begin(), m_widgets.end(), &widget);
-	m_widgets.erase(it);
-}
-
 void Interface::update()
 {
-	for (IWidget* widget : m_widgets)
+	m_container.update();
+
+	/*Vec2d cursorPos = Game::getCursorPosition();
+	for (Widget* widget : m_widgets)
+	{
+		bool isContained = widget->clickBounds.contains(cursorPos);
+		if (widget->beingHovered && !isContained)
+		{
+			widget->beingHovered = false;
+		}
+		else if (isContained)
+		{
+			widget->beingHovered = true;
+		}
 		widget->update();
+	}*/
 }
 
 void Interface::render()
 {
-	std::vector<IWidget*> sorted = m_widgets;
-	std::sort(sorted.begin(), sorted.end(), [](IWidget* a, IWidget* b){
-		return a->renderPriority < b->renderPriority;
-	});
-
-	for (IWidget* widget : sorted)
-		widget->render();
+	m_container.render();
 }
 
 void Interface::onMouseClick(Key key, KeyState state)
 {
-	Vec2d cursorPos = Game::getCursorPosition();
-	for (IWidget* widget : m_widgets)
+	/*Vec2d cursorPos = Game::getCursorPosition();
+	for (Widget* widget : m_widgets)
 	{
-		if (widget->clickable && widget->bounds.contains(cursorPos))
+		if (widget->clickable)
 		{
-			if (!widget->onClick(key, state))
-				break;
+			bool isContained = widget->clickBounds.contains(cursorPos);
+			if (widget->beingHeld)
+			{
+				if (state == KeyState::Released)
+				{
+					widget->beingHeld = false;
+					if (isContained)
+					{
+						widget->onClick();
+						break;
+					}
+				}
+			}
+			else
+			{
+				if (state == KeyState::Pressed && isContained)
+					widget->beingHeld = true;
+			}
 		}
-	}
+	}*/
 }
 
 mGUI_END

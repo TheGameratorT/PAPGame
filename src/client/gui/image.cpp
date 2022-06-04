@@ -10,15 +10,23 @@ void Image::update()
 
 void Image::render()
 {
-	if (m_texture != nullptr)
-		Renderer::renderTexture(*m_texture, bounds, m_rotation, m_textureOpacity);
+	if (m_texture)
+	{
+		Texture* texture;
+		if (m_heldTexture && beingHeld)
+			texture = m_heldTexture;
+		else if (m_hoverTexture && beingHovered && hoverable)
+			texture = m_hoverTexture;
+		else
+			texture = m_texture;
+		Renderer::renderTexture(*texture, bounds, m_rotation, m_textureOpacity);
+	}
 }
 
-bool Image::onClick(Key key, KeyState state)
+void Image::onClick()
 {
 	if (m_mouseClickCallback)
-		return m_mouseClickCallback(key, state);
-	return true;
+		return m_mouseClickCallback();
 }
 
 mGUI_END

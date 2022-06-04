@@ -15,6 +15,7 @@ namespace Game
 	using KeyCallback = std::function<void(KeyState)>;
 
 	extern mGUI::Interface gui;
+	extern bool shouldQuitGame;
 	extern float tickDuration;
 	extern float frameDelta;
 	extern float tickAlpha;
@@ -27,6 +28,8 @@ namespace Game
 	bool init();
 	void run();
 	void destroy();
+
+	void reload();
 
 	void update(double timeNow);
 	void render();
@@ -59,4 +62,7 @@ namespace Game
 	KeyHandle bindKey(Key key, const KeyCallback& callback);
 
 	void unbindKey(KeyHandle handle);
+
+	inline void quit()
+	{ shouldQuitGame = true; }
 }

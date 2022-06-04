@@ -2,6 +2,7 @@
 
 #include "render/texture.hpp"
 #include "gui/image.hpp"
+#include "gui/container.hpp"
 #include "gui/interface.hpp"
 
 #include "game.hpp"
@@ -11,6 +12,7 @@ namespace LoadingScreen
 	static Texture bgTexture;
 	static Texture loadTextTexture;
 	static Texture loadAnimTexture;
+	static mGUI::Container container;
 	static mGUI::Image bgWidget[2];
 	static mGUI::Image loadTextWidget;
 	static mGUI::Image loadAnimWidget;
@@ -25,6 +27,9 @@ namespace LoadingScreen
 		bgTexture.load("@/loading_bg.png");
 		loadTextTexture.load("@/loading_text.png");
 		loadAnimTexture.load("@/loading_anim.png");
+
+		container.setRenderPriority(2000);
+		Game::getGUI().getContainer().addWidget(container);
 	}
 
 	void destroy()
@@ -39,19 +44,18 @@ namespace LoadingScreen
 		if (isVisible)
 			return;
 
-		mGUI::Interface& gui = Game::getGUI();
 		for (auto& i : bgWidget)
 		{
-			i.renderPriority = 1000;
+			i.setRenderPriority(0);
 			i.setTexture(bgTexture);
-			gui.addWidget(i);
+			container.addWidget(i);
 		}
-		loadTextWidget.renderPriority = 1001;
+		loadTextWidget.setRenderPriority(1);
 		loadTextWidget.setTexture(loadTextTexture);
-		gui.addWidget(loadTextWidget);
-		loadAnimWidget.renderPriority = 1001;
+		container.addWidget(loadTextWidget);
+		loadAnimWidget.setRenderPriority(1);
 		loadAnimWidget.setTexture(loadAnimTexture);
-		gui.addWidget(loadAnimWidget);
+		container.addWidget(loadAnimWidget);
 
 		bgOffset = 0;
 		lastBgOffset = 0;
@@ -65,11 +69,8 @@ namespace LoadingScreen
 		if (!isVisible)
 			return;
 
-		mGUI::Interface& gui = Game::getGUI();
-		for (auto& i : bgWidget)
-			gui.removeWidget(i);
-		gui.removeWidget(loadTextWidget);
-		gui.removeWidget(loadAnimWidget);
+		container.clear();
+		Game::getGUI().getContainer().removeWidget(container);
 		isVisible = false;
 	}
 

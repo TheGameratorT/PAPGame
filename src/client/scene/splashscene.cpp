@@ -21,21 +21,19 @@ void SplashScene::onCreate()
 
 	LoadingScreen::show();
 
-	mGUI::Interface& gui = Game::getGUI();
+	Game::getGUI().getContainer().addWidget(canvas);
+	canvas.setRenderPriority(3000);
 
-	gameByTexture.load("@/game_by.png");
-	gameByTexture.getGleTex2D().setMagFilter(GLE::TextureFilter::None);
+	gameByTexture.load("@/game_by.png", GLE::TextureFilter::None);
+	logoTexture.load("@/title.png", GLE::TextureFilter::None);
 
-	logoTexture.load("@/title.png");
-	logoTexture.getGleTex2D().setMagFilter(GLE::TextureFilter::None);
-
-	gameByWidget.renderPriority = 1012;
+	gameByWidget.setRenderPriority(1);
 	gameByWidget.setTexture(gameByTexture);
-	gui.addWidget(gameByWidget);
+	canvas.addWidget(gameByWidget);
 
-	logoWidget.renderPriority = 1011;
+	logoWidget.setRenderPriority(0);
 	logoWidget.setTexture(logoTexture);
-	gui.addWidget(logoWidget);
+	canvas.addWidget(logoWidget);
 }
 
 void SplashScene::onUpdate()
@@ -88,9 +86,8 @@ void SplashScene::onRender()
 
 void SplashScene::onDestroy()
 {
-	mGUI::Interface& gui = Game::getGUI();
-	gui.removeWidget(gameByWidget);
-	gui.removeWidget(logoWidget);
+	canvas.clear();
+	Game::getGUI().getContainer().removeWidget(canvas);
 	gameByTexture.destroy();
 	logoTexture.destroy();
 }
