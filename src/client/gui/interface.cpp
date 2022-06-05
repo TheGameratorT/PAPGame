@@ -19,21 +19,6 @@ void Interface::destroy()
 void Interface::update()
 {
 	m_container.update();
-
-	/*Vec2d cursorPos = Game::getCursorPosition();
-	for (Widget* widget : m_widgets)
-	{
-		bool isContained = widget->clickBounds.contains(cursorPos);
-		if (widget->beingHovered && !isContained)
-		{
-			widget->beingHovered = false;
-		}
-		else if (isContained)
-		{
-			widget->beingHovered = true;
-		}
-		widget->update();
-	}*/
 }
 
 void Interface::render()
@@ -43,31 +28,7 @@ void Interface::render()
 
 void Interface::onMouseClick(Key key, KeyState state)
 {
-	/*Vec2d cursorPos = Game::getCursorPosition();
-	for (Widget* widget : m_widgets)
-	{
-		if (widget->clickable)
-		{
-			bool isContained = widget->clickBounds.contains(cursorPos);
-			if (widget->beingHeld)
-			{
-				if (state == KeyState::Released)
-				{
-					widget->beingHeld = false;
-					if (isContained)
-					{
-						widget->onClick();
-						break;
-					}
-				}
-			}
-			else
-			{
-				if (state == KeyState::Pressed && isContained)
-					widget->beingHeld = true;
-			}
-		}
-	}*/
+	m_container.onClick(key, state);
 }
 
 mGUI_END

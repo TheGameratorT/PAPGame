@@ -12,11 +12,10 @@ mGUI_BEGIN
 class Widget
 {
 public:
-	Widget();
-
 	virtual void update();
 	virtual void render();
-	virtual void onClick();
+
+	virtual void onClick(Key key, KeyState state);
 
 	constexpr void setParent(Widget* parent) { m_parent = parent; }
 	[[nodiscard]] constexpr Widget* getParent() const { return m_parent; }
@@ -24,20 +23,17 @@ public:
 	constexpr void setVisible(bool visible) { m_visible = visible; }
 	[[nodiscard]] constexpr bool getVisible() const { return m_visible; }
 
-	constexpr void setRenderPriority(u32 priority) { m_renderPriority = priority; }
-	[[nodiscard]] constexpr u32 getRenderPriority() const { return m_renderPriority; }
+	constexpr void setZIndex(u32 zindex) { m_zpos = zindex; }
+	[[nodiscard]] constexpr u32 getZIndex() const { return m_zpos; }
 
-	RectI bounds = {0, 0, 0, 0};
-	RectI clickBounds = {0, 0, 0, 0};
-	bool clickable = true;
-	bool hoverable = true;
-	bool beingHovered = false;
-	bool beingHeld = false;
+	constexpr void setBounds(const RectI& bounds) { m_bounds = bounds; }
+	[[nodiscard]] constexpr const RectI& getBounds() const { return m_bounds; }
 
 private:
-	Widget* m_parent;
-	bool m_visible;
-	u32 m_renderPriority = 1000;
+	Widget* m_parent = nullptr;
+	bool m_visible = true;
+	u32 m_zpos = 1000;
+	RectI m_bounds = { 0, 0, 0, 0 };
 };
 
 mGUI_END

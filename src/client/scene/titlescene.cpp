@@ -35,36 +35,36 @@ void TitleScene::onCreate()
 	edb2Texture.load("@/title/edb2.png", GLE::TextureFilter::None);
 	edb3Texture.load("@/title/edb3.png", GLE::TextureFilter::None);
 
-	titleWidget.setTexture(titleTexture);
-	bgWidget.setTexture(bgTexture);
-	createGameButtonWidget.setTexture(buttonTexture);
-	createGameButtonWidget.setHeldTexture(buttonHeldTexture);
-	createGameButtonWidget.setHoverTexture(buttonHoverTexture);
-	joinGameButtonWidget.setTexture(buttonTexture);
-	joinGameButtonWidget.setHeldTexture(buttonHeldTexture);
-	joinGameButtonWidget.setHoverTexture(buttonHoverTexture);
-	createGameTextWidget.setTexture(createGameTextTexture);
-	joinGameTextWidget.setTexture(joinGameTextTexture);
-	exitWidget.setTexture(exitTexture);
-	aboutWidget.setTexture(aboutTexture);
-	settingsWidget.setTexture(settingsTexture);
-	edBgWidget.setTexture(edBgTexture);
-	edDtWidget.setTexture(edDtTexture);
-	edbYWidget.setTexture(edb1Texture);
-	edbYWidget.setHoverTexture(edb2Texture);
-	edbYWidget.setHeldTexture(edb3Texture);
-	edbNWidget.setTexture(edb1Texture);
-	edbNWidget.setHoverTexture(edb2Texture);
-	edbNWidget.setHeldTexture(edb3Texture);
+	titleWidget.setTexture(&titleTexture);
+	bgWidget.setTexture(&bgTexture);
+	createGameButtonWidget.setTexture(&buttonTexture);
+	createGameButtonWidget.setHeldTexture(&buttonHeldTexture);
+	createGameButtonWidget.setHoverTexture(&buttonHoverTexture);
+	joinGameButtonWidget.setTexture(&buttonTexture);
+	joinGameButtonWidget.setHeldTexture(&buttonHeldTexture);
+	joinGameButtonWidget.setHoverTexture(&buttonHoverTexture);
+	createGameTextWidget.setTexture(&createGameTextTexture);
+	joinGameTextWidget.setTexture(&joinGameTextTexture);
+	exitWidget.setTexture(&exitTexture);
+	aboutWidget.setTexture(&aboutTexture);
+	settingsWidget.setTexture(&settingsTexture);
+	edBgWidget.setTexture(&edBgTexture);
+	edDtWidget.setTexture(&edDtTexture);
+	edbYWidget.setTexture(&edb1Texture);
+	edbYWidget.setHoverTexture(&edb2Texture);
+	edbYWidget.setHeldTexture(&edb3Texture);
+	edbNWidget.setTexture(&edb1Texture);
+	edbNWidget.setHoverTexture(&edb2Texture);
+	edbNWidget.setHeldTexture(&edb3Texture);
 
-	bgWidget.setRenderPriority(0);
-	createGameTextWidget.setRenderPriority(1010);
-	joinGameTextWidget.setRenderPriority(1010);
+	bgWidget.setZIndex(0);
+	createGameTextWidget.setZIndex(1010);
+	joinGameTextWidget.setZIndex(1010);
 
-	edBgWidget.setRenderPriority(1020);
-	edDtWidget.setRenderPriority(1022);
-	edbYWidget.setRenderPriority(1021);
-	edbNWidget.setRenderPriority(1021);
+	edBgWidget.setZIndex(1020);
+	edDtWidget.setZIndex(1022);
+	edbYWidget.setZIndex(1021);
+	edbNWidget.setZIndex(1021);
 
 	exitWidget.setOnClick([this](){ showExitDialog(); });
 	edbYWidget.setOnClick([](){ Game::quit(); });
@@ -74,7 +74,6 @@ void TitleScene::onCreate()
 		showNicknameDialog();
 	});
 
-	Game::getGUI().getContainer().addWidget(canvas);
 	canvas.addWidget(titleWidget);
 	canvas.addWidget(bgWidget);
 	canvas.addWidget(createGameButtonWidget);
@@ -84,14 +83,19 @@ void TitleScene::onCreate()
 	canvas.addWidget(exitWidget);
 	canvas.addWidget(aboutWidget);
 	canvas.addWidget(settingsWidget);
+	canvas.setZIndex(0);
 
 	exitDialogCanvas.addWidget(edBgWidget);
 	exitDialogCanvas.addWidget(edDtWidget);
 	exitDialogCanvas.addWidget(edbYWidget);
 	exitDialogCanvas.addWidget(edbNWidget);
+	exitDialogCanvas.setZIndex(1051);
 	canvas.addWidget(exitDialogCanvas);
 
+	nicknameDialogCanvas.setZIndex(1051);
 	canvas.addWidget(nicknameDialogCanvas);
+
+	Game::getGUI().getContainer().addWidget(canvas);
 }
 
 void TitleScene::onUpdate()
@@ -112,7 +116,7 @@ void TitleScene::onRender()
 {
 	auto area = Vec2i(Game::getFramebufferSize());
 
-	bgWidget.bounds = RectI(0, 0, area.x, area.y);
+	bgWidget.setBounds({0, 0, area.x, area.y});
 
 	float windowFactor = (float(area.x * area.y) / BASE_WND_AREA);
 
@@ -123,7 +127,7 @@ void TitleScene::onRender()
 	i32 titleWidth = titleSize;
 	i32 titleHeight = std::lroundl(1.0f / TITLE_IMG_ARATIO * float(titleSize));
 
-	titleWidget.bounds = RectI((area.x - titleWidth) / 2, 0, titleWidth, titleHeight);
+	titleWidget.setBounds({(area.x - titleWidth) / 2, 0, titleWidth, titleHeight});
 
 	float buttonSizeGrowthMul = 4.5f;
 	float buttonSizeMul = (windowFactor / buttonSizeGrowthMul) + (1.0f - (1.0f / buttonSizeGrowthMul));
@@ -134,23 +138,23 @@ void TitleScene::onRender()
 
 	i32 buttonSpacing = std::lroundl(16.0f * buttonSizeMul);
 
-	createGameButtonWidget.bounds = RectI(
+	RectI createGameButtonBounds = {
 		(area.x - buttonWidth) / 2,
 		titleHeight,
 		buttonWidth,
 		buttonHeight
-	);
-	createGameButtonWidget.clickBounds = createGameButtonWidget.bounds;
-	createGameTextWidget.bounds = createGameButtonWidget.bounds;
+	};
+	createGameButtonWidget.setBounds(createGameButtonBounds);
+	createGameTextWidget.setBounds(createGameButtonBounds);
 
-	joinGameButtonWidget.bounds = RectI(
+	RectI joinGameButtonBounds = {
 		(area.x - buttonWidth) / 2,
 		titleHeight + buttonHeight + buttonSpacing,
 		buttonWidth,
 		buttonHeight
-	);
-	joinGameButtonWidget.clickBounds = joinGameButtonWidget.bounds;
-	joinGameTextWidget.bounds = joinGameButtonWidget.bounds;
+	};
+	joinGameButtonWidget.setBounds(joinGameButtonBounds);
+	joinGameTextWidget.setBounds(joinGameButtonBounds);
 
 	float buttonSizeGrowthMul2 = 3.0f;
 	float buttonSizeMul2 = (windowFactor / buttonSizeGrowthMul2) + (1.0f - (1.0f / buttonSizeGrowthMul2));
@@ -162,12 +166,11 @@ void TitleScene::onRender()
 	i32 buttonXSpacing = std::lroundl(16 * buttonSizeMul2);
 	i32 buttonY2 = area.y - buttonSize2 - std::lroundl(12.0f * buttonSizeMul2);
 
-	aboutWidget.bounds = RectI(buttonXSpacing, buttonY2, buttonWidth2, buttonHeight2);
+	aboutWidget.setBounds({buttonXSpacing, buttonY2, buttonWidth2, buttonHeight2});
 
-	settingsWidget.bounds = RectI(area.x - buttonWidth2 - buttonXSpacing, buttonY2, buttonWidth2, buttonHeight2);
+	settingsWidget.setBounds({area.x - buttonWidth2 - buttonXSpacing, buttonY2, buttonWidth2, buttonHeight2});
 
-	exitWidget.bounds = RectI(area.x - (buttonWidth2 * 2) - (buttonXSpacing * 2), buttonY2, buttonWidth2, buttonHeight2);
-	exitWidget.clickBounds = exitWidget.bounds;
+	exitWidget.setBounds({area.x - (buttonWidth2 * 2) - (buttonXSpacing * 2), buttonY2, buttonWidth2, buttonHeight2});
 
 	if (exitDialogOpen)
 		renderExitDialog(area, windowFactor);
@@ -192,6 +195,7 @@ void TitleScene::onDestroy()
 	edDtTexture.destroy();
 	edb1Texture.destroy();
 	edb2Texture.destroy();
+	edb3Texture.destroy();
 }
 
 void TitleScene::onDestroyRequest()
@@ -201,11 +205,9 @@ void TitleScene::onDestroyRequest()
 
 void TitleScene::setCommonWidgetsEnabled(bool enabled)
 {
-	createGameButtonWidget.clickable = enabled;
-	createGameButtonWidget.hoverable = enabled;
-	joinGameButtonWidget.clickable = enabled;
-	joinGameButtonWidget.hoverable = enabled;
-	exitWidget.clickable = enabled;
+	createGameButtonWidget.setEnabled(enabled);
+	joinGameButtonWidget.setEnabled(enabled);
+	exitWidget.setEnabled(enabled);
 }
 
 void TitleScene::renderExitDialog(const Vec2i& area, float windowFactor)
@@ -224,28 +226,26 @@ void TitleScene::renderExitDialog(const Vec2i& area, float windowFactor)
 	i32 diagX = (area.x - diagWidth) / 2;
 	i32 diagY = (area.y - diagHeight) / 2;
 
-	edBgWidget.bounds = RectI(diagX, diagY, diagWidth, diagHeight);
-	edDtWidget.bounds = edBgWidget.bounds;
+	edBgWidget.setBounds({diagX, diagY, diagWidth, diagHeight});
+	edDtWidget.setBounds(edBgWidget.getBounds());
 
 	i32 btnSize = std::lroundl((53.0f * 512.0f) / 302.0f * diagSizeMul);
 	i32 btnWidth = btnSize;
 	i32 btnHeight = std::lroundl(1.0f / EXITDIAGBTN_IMG_ARATIO * float(btnSize));
 
-	edbYWidget.bounds = RectI(
+	edbYWidget.setBounds({
 		std::lroundl(158.0f * diagScaleDiffPix) + diagX,
 		std::lroundl(78.0f * diagScaleDiffPix) + diagY,
 		btnWidth,
 		btnHeight
-	);
-	edbYWidget.clickBounds = edbYWidget.bounds;
+	});
 
-	edbNWidget.bounds = RectI(
+	edbNWidget.setBounds({
 		std::lroundl(226.0f * diagScaleDiffPix) + diagX,
 		std::lroundl(78.0f * diagScaleDiffPix) + diagY,
 		btnWidth,
 		btnHeight
-	);
-	edbNWidget.clickBounds = edbNWidget.bounds;
+	});
 }
 
 void TitleScene::showExitDialog()

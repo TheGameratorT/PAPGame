@@ -2,13 +2,8 @@
 
 mGUI_BEGIN
 
-Widget::Widget() :
-	m_parent(nullptr),
-	m_visible(true)
-{}
-
 void Widget::update() {}
 void Widget::render() {}
-void Widget::onClick() {}
+void Widget::onClick(Key key, KeyState state) {}
 
 mGUI_END

@@ -3,6 +3,7 @@
 #include "scene.hpp"
 #include "render/texture.hpp"
 #include "gui/image.hpp"
+#include "gui/button.hpp"
 #include "gui/container.hpp"
 
 class TitleScene : public Scene
@@ -37,17 +38,17 @@ private:
 	Texture edb3Texture;
 	mGUI::Image titleWidget;
 	mGUI::Image bgWidget;
-	mGUI::Image createGameButtonWidget;
-	mGUI::Image joinGameButtonWidget;
+	mGUI::Button createGameButtonWidget;
+	mGUI::Button joinGameButtonWidget;
 	mGUI::Image createGameTextWidget;
 	mGUI::Image joinGameTextWidget;
-	mGUI::Image exitWidget;
-	mGUI::Image aboutWidget;
-	mGUI::Image settingsWidget;
+	mGUI::Button exitWidget;
+	mGUI::Button aboutWidget;
+	mGUI::Button settingsWidget;
 	mGUI::Image edBgWidget;
 	mGUI::Image edDtWidget;
-	mGUI::Image edbYWidget;
-	mGUI::Image edbNWidget;
+	mGUI::Button edbYWidget;
+	mGUI::Button edbNWidget;
 
 	float dialogAnimTimer = 0.0f;
 	float lastDialogAnimTimer = 0.0f;

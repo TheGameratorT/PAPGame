@@ -28,7 +28,7 @@ namespace LoadingScreen
 		loadTextTexture.load("@/loading_text.png");
 		loadAnimTexture.load("@/loading_anim.png");
 
-		container.setRenderPriority(2000);
+		container.setZIndex(2000);
 		Game::getGUI().getContainer().addWidget(container);
 	}
 
@@ -46,15 +46,15 @@ namespace LoadingScreen
 
 		for (auto& i : bgWidget)
 		{
-			i.setRenderPriority(0);
-			i.setTexture(bgTexture);
+			i.setZIndex(0);
+			i.setTexture(&bgTexture);
 			container.addWidget(i);
 		}
-		loadTextWidget.setRenderPriority(1);
-		loadTextWidget.setTexture(loadTextTexture);
+		loadTextWidget.setZIndex(1);
+		loadTextWidget.setTexture(&loadTextTexture);
 		container.addWidget(loadTextWidget);
-		loadAnimWidget.setRenderPriority(1);
-		loadAnimWidget.setTexture(loadAnimTexture);
+		loadAnimWidget.setZIndex(1);
+		loadAnimWidget.setTexture(&loadAnimTexture);
 		container.addWidget(loadAnimWidget);
 
 		bgOffset = 0;
@@ -105,18 +105,18 @@ namespace LoadingScreen
 		if (lerpedBgOffset > 0)
 			lerpedBgOffset -= i32(area.x);
 
-		bgWidget[0].bounds = RectI(lerpedBgOffset, 0, i32(area.x), i32(area.y));
-		bgWidget[1].bounds = RectI(i32(area.x) + lerpedBgOffset, 0, i32(area.x), i32(area.y));
+		bgWidget[0].setBounds({lerpedBgOffset, 0, i32(area.x), i32(area.y)});
+		bgWidget[1].setBounds({i32(area.x) + lerpedBgOffset, 0, i32(area.x), i32(area.y)});
 
 		float scale = float(area.x) + float(area.y);
 		scale /= 560;
 
 		u32 loadTextHeight = u32(32 * scale);
-		loadTextWidget.bounds = RectI(16, i32(area.y - (loadTextHeight + 12)), i32(128 * scale), i32(loadTextHeight));
+		loadTextWidget.setBounds({16, i32(area.y - (loadTextHeight + 12)), i32(128 * scale), i32(loadTextHeight)});
 
 		float lerpedGearRotation = Math::lerp(lastGearRotation, gearRotation, Game::getTickAlpha());
 
-		loadAnimWidget.bounds = RectI(i32(area.x - loadTextHeight - 32), i32(area.y - (loadTextHeight + 12)), i32(loadTextHeight), i32(loadTextHeight));
+		loadAnimWidget.setBounds({i32(area.x - loadTextHeight - 32), i32(area.y - (loadTextHeight + 12)), i32(loadTextHeight), i32(loadTextHeight)});
 		loadAnimWidget.setRotation(Vec3f(0.0f, 0.0f, lerpedGearRotation));
 	}
 }

@@ -22,17 +22,17 @@ void SplashScene::onCreate()
 	LoadingScreen::show();
 
 	Game::getGUI().getContainer().addWidget(canvas);
-	canvas.setRenderPriority(3000);
+	canvas.setZIndex(3000);
 
 	gameByTexture.load("@/game_by.png", GLE::TextureFilter::None);
 	logoTexture.load("@/title.png", GLE::TextureFilter::None);
 
-	gameByWidget.setRenderPriority(1);
-	gameByWidget.setTexture(gameByTexture);
+	gameByWidget.setZIndex(1);
+	gameByWidget.setTexture(&gameByTexture);
 	canvas.addWidget(gameByWidget);
 
-	logoWidget.setRenderPriority(0);
-	logoWidget.setTexture(logoTexture);
+	logoWidget.setZIndex(0);
+	logoWidget.setTexture(&logoTexture);
 	canvas.addWidget(logoWidget);
 }
 
@@ -71,17 +71,17 @@ void SplashScene::onRender()
 	auto logoSize = areaSum / 1.8f;
 	i32 targetWidth = i32(logoSize);
 	i32 targetHeight = i32(1.0f / TITLE_IMG_ARATIO * logoSize);
-	logoWidget.bounds = RectI((i32(area.x) - targetWidth) / 2, 0, targetWidth, targetHeight);
+	logoWidget.setBounds({(i32(area.x) - targetWidth) / 2, 0, targetWidth, targetHeight});
 
 	auto gameBySize = areaSum / 3.5f;
 	i32 targetWidth2 = i32(gameBySize);
 	i32 targetHeight2 = i32(1.0f / GAMEBY_IMG_ARATIO * gameBySize);
-	gameByWidget.bounds = RectI(
+	gameByWidget.setBounds({
 		(i32(area.x) - targetWidth2) / 2,
 		std::lroundl(float(targetHeight) - 48 * (areaSum / 1100.0f)),
 		targetWidth2,
 		targetHeight2
-	);
+	});
 }
 
 void SplashScene::onDestroy()
