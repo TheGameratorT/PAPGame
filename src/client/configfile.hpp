@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "filesystem/file.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 
 class ConfigFile
 {
@@ -15,12 +15,12 @@ public:
 
 	std::string get(const std::string& key, const std::string& defValue);
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	T get(const std::string& key, T defValue);
 
 	void set(const std::string& key, const std::string& value);
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	void set(const std::string& key, T value);
 
 private:

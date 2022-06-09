@@ -50,13 +50,24 @@ void Container::render()
 	}
 }
 
-void Container::onClick(Key key, KeyState state)
+void Container::onKey(Key key, KeyState state)
 {
 	for (Widget* widget : getChildren())
 	{
 		if (widget->getVisible())
 		{
-			widget->onClick(key, state);
+			widget->onKey(key, state);
+		}
+	}
+}
+
+void Container::onKeyChar(KeyChar chr)
+{
+	for (Widget* widget : getChildren())
+	{
+		if (widget->getVisible())
+		{
+			widget->onKeyChar(chr);
 		}
 	}
 }

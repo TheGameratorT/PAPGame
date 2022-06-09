@@ -6,18 +6,10 @@
 class PNGDecoder : public IImageDecoder
 {
 public:
-	PNGDecoder() : validDecode(false) {}
+	explicit PNGDecoder(std::optional<Pixel> reqFormat) : IImageDecoder(reqFormat), validDecode(false) {}
 
 	void decode(std::span<const u8> data);
-
-	template<Pixel P>
-	Image<P> getImage()
-	{
-		if (!validDecode) {
-			throw ImageDecoderException("Bad image decode");
-		}
-		return Image<P>::fromRaw(image);
-	}
+	RawImage& getImage();
 
 private:
 	bool validDecode;

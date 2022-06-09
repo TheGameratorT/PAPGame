@@ -15,7 +15,8 @@ public:
 
 	void update() override;
 	void render() override;
-	void onClick(Key key, KeyState state) override;
+	void onKey(Key key, KeyState state) override;
+	void onKeyChar(KeyChar chr) override;
 
 	[[nodiscard]] constexpr const std::vector<Widget*>& getChildren() { return m_children; }
 

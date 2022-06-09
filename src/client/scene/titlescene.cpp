@@ -13,6 +13,15 @@ constexpr float ICON_IMG_ARATIO = 64.0f / 64.0f;
 constexpr float EXITDIAG_IMG_ARATIO = 302.0f / 121.0f;
 constexpr float EXITDIAGBTN_IMG_ARATIO = 53.0f / 25.0f;
 
+constexpr Vec2i NICKNDIAG_IMG_SIZE = { 302, 121 };
+constexpr float NICKNDIAG_IMG_ARATIO = float(NICKNDIAG_IMG_SIZE.x) / float(NICKNDIAG_IMG_SIZE.y);
+constexpr Vec2i NICKNDIAGTB_IMG_SIZE = { 275, 34 };
+constexpr float NICKNDIAGTB_IMG_ARATIO = float(NICKNDIAGTB_IMG_SIZE.x) / float(NICKNDIAGTB_IMG_SIZE.y);
+constexpr Vec2i NICKNDIAGBTN1_IMG_SIZE = { 53, 25 };
+constexpr float NICKNDIAGBTN1_IMG_ARATIO = float(NICKNDIAGBTN1_IMG_SIZE.x) / float(NICKNDIAGBTN1_IMG_SIZE.y);
+constexpr Vec2i NICKNDIAGBTN2_IMG_SIZE = { 62, 25 };
+constexpr float NICKNDIAGBTN2_IMG_ARATIO = float(NICKNDIAGBTN2_IMG_SIZE.x) / float(NICKNDIAGBTN2_IMG_SIZE.y);
+
 IMPL_OBJECT(TitleScene)
 
 void TitleScene::onCreate()
@@ -34,6 +43,15 @@ void TitleScene::onCreate()
 	edb1Texture.load("@/title/edb1.png", GLE::TextureFilter::None);
 	edb2Texture.load("@/title/edb2.png", GLE::TextureFilter::None);
 	edb3Texture.load("@/title/edb3.png", GLE::TextureFilter::None);
+	nndBgTexture.load("@/title/name_diag_bg.png", GLE::TextureFilter::None);
+	nndDtTexture.load("@/title/name_diag_dt.png", GLE::TextureFilter::None);
+	nndTbTexture.load("@/title/nndtb.png", GLE::TextureFilter::None);
+	nndb1Texture.load("@/title/nndb1.png", GLE::TextureFilter::None);
+	nndb1cTexture.load("@/title/nndb1_c.png", GLE::TextureFilter::None);
+	nndb1hTexture.load("@/title/nndb1_h.png", GLE::TextureFilter::None);
+	nndb2Texture.load("@/title/nndb2.png", GLE::TextureFilter::None);
+	nndb2cTexture.load("@/title/nndb2_c.png", GLE::TextureFilter::None);
+	nndb2hTexture.load("@/title/nndb2_h.png", GLE::TextureFilter::None);
 
 	titleWidget.setTexture(&titleTexture);
 	bgWidget.setTexture(&bgTexture);
@@ -56,6 +74,15 @@ void TitleScene::onCreate()
 	edbNWidget.setTexture(&edb1Texture);
 	edbNWidget.setHoverTexture(&edb2Texture);
 	edbNWidget.setHeldTexture(&edb3Texture);
+	nndBgWidget.setTexture(&nndBgTexture);
+	nndDtWidget.setTexture(&nndDtTexture);
+	nndTbWidget.setTexture(&nndTbTexture);
+	nndbYWidget.setTexture(&nndb1Texture);
+	nndbYWidget.setHoverTexture(&nndb1hTexture);
+	nndbYWidget.setHeldTexture(&nndb1cTexture);
+	nndbNWidget.setTexture(&nndb2Texture);
+	nndbNWidget.setHoverTexture(&nndb2hTexture);
+	nndbNWidget.setHeldTexture(&nndb2cTexture);
 
 	bgWidget.setZIndex(0);
 	createGameTextWidget.setZIndex(1010);
@@ -66,6 +93,16 @@ void TitleScene::onCreate()
 	edbYWidget.setZIndex(1021);
 	edbNWidget.setZIndex(1021);
 
+	nndBgWidget.setZIndex(1020);
+	nndDtWidget.setZIndex(1021);
+	nndTbWidget.setZIndex(1022);
+	nndbYWidget.setZIndex(1022);
+	nndbNWidget.setZIndex(1022);
+
+	nndTbWidget.setFontScale(0.70f);
+	nndTbWidget.setTextSidePadding(768.0f);
+	nndTbWidget.setMaxCharacters(16);
+
 	exitWidget.setOnClick([this](){ showExitDialog(); });
 	edbYWidget.setOnClick([](){ Game::quit(); });
 	edbNWidget.setOnClick([this](){ closeExitDialog(); });
@@ -73,6 +110,8 @@ void TitleScene::onCreate()
 	joinGameButtonWidget.setOnClick([this](){
 		showNicknameDialog();
 	});
+
+	nndbNWidget.setOnClick([this](){ closeNicknameDialog(); });
 
 	canvas.addWidget(titleWidget);
 	canvas.addWidget(bgWidget);
@@ -90,9 +129,16 @@ void TitleScene::onCreate()
 	exitDialogCanvas.addWidget(edbYWidget);
 	exitDialogCanvas.addWidget(edbNWidget);
 	exitDialogCanvas.setZIndex(1051);
+	exitDialogCanvas.setVisible(false);
 	canvas.addWidget(exitDialogCanvas);
 
+	nicknameDialogCanvas.addWidget(nndBgWidget);
+	nicknameDialogCanvas.addWidget(nndDtWidget);
+	nicknameDialogCanvas.addWidget(nndTbWidget);
+	nicknameDialogCanvas.addWidget(nndbYWidget);
+	nicknameDialogCanvas.addWidget(nndbNWidget);
 	nicknameDialogCanvas.setZIndex(1051);
+	nicknameDialogCanvas.setVisible(false);
 	canvas.addWidget(nicknameDialogCanvas);
 
 	Game::getGUI().getContainer().addWidget(canvas);
@@ -174,6 +220,9 @@ void TitleScene::onRender()
 
 	if (exitDialogOpen)
 		renderExitDialog(area, windowFactor);
+
+	if (nicknameDialogOpen)
+		renderNicknameDialog(area, windowFactor);
 }
 
 void TitleScene::onDestroy()
@@ -196,6 +245,15 @@ void TitleScene::onDestroy()
 	edb1Texture.destroy();
 	edb2Texture.destroy();
 	edb3Texture.destroy();
+	nndBgTexture.destroy();
+	nndDtTexture.destroy();
+	nndTbTexture.destroy();
+	nndb1Texture.destroy();
+	nndb1cTexture.destroy();
+	nndb1hTexture.destroy();
+	nndb2Texture.destroy();
+	nndb2cTexture.destroy();
+	nndb2hTexture.destroy();
 }
 
 void TitleScene::onDestroyRequest()
@@ -221,7 +279,7 @@ void TitleScene::renderExitDialog(const Vec2i& area, float windowFactor)
 	i32 diagWidth = diagSize;
 	i32 diagHeight = std::lroundl(1.0f / EXITDIAG_IMG_ARATIO * float(diagSize));
 
-	float diagScaleDiffPix = (float(diagSize) / 304.0f);
+	float diagScaleDiffPix = (float(diagSize) / 302.0f);
 
 	i32 diagX = (area.x - diagWidth) / 2;
 	i32 diagY = (area.y - diagHeight) / 2;
@@ -277,7 +335,55 @@ void TitleScene::closeExitDialog()
 
 void TitleScene::renderNicknameDialog(const Vec2i& area, float windowFactor)
 {
+	float diagSizeGrowthMul = 4.5f;
+	float diagSizeMul = (windowFactor / diagSizeGrowthMul) + (1.0f - (1.0f / diagSizeGrowthMul));
 
+	diagSizeMul *= Math::lerp(lastDialogAnimTimer, dialogAnimTimer, Game::getTickAlpha());
+
+	i32 diagSize = std::lroundl(512.0f * diagSizeMul);
+	i32 diagWidth = diagSize;
+	i32 diagHeight = std::lroundl(1.0f / NICKNDIAG_IMG_ARATIO * float(diagSize));
+
+	float diagScaleDiffPix = (float(diagSize) / float(NICKNDIAG_IMG_SIZE.x));
+
+	i32 diagX = (area.x - diagWidth) / 2;
+	i32 diagY = (area.y - diagHeight) / 2;
+
+	nndBgWidget.setBounds({diagX, diagY, diagWidth, diagHeight});
+	nndDtWidget.setBounds(nndBgWidget.getBounds());
+
+	i32 textboxSize = std::lroundl((float(NICKNDIAGTB_IMG_SIZE.x) * 512.0f) / float(NICKNDIAG_IMG_SIZE.x) * diagSizeMul);
+	i32 textboxWidth = textboxSize;
+	i32 textboxHeight = std::lroundl(1.0f / NICKNDIAGTB_IMG_ARATIO * float(textboxSize));
+
+	nndTbWidget.setBounds({
+		std::lroundl(13.0f * diagScaleDiffPix) + diagX,
+		std::lroundl(44.0f * diagScaleDiffPix) + diagY,
+		textboxWidth,
+		textboxHeight
+	});
+
+	i32 btn1Size = std::lroundl((float(NICKNDIAGBTN1_IMG_SIZE.x) * 512.0f) / float(NICKNDIAG_IMG_SIZE.x) * diagSizeMul);
+	i32 btn1Width = btn1Size;
+	i32 btn1Height = std::lroundl(1.0f / NICKNDIAGBTN1_IMG_ARATIO * float(btn1Size));
+
+	nndbYWidget.setBounds({
+		std::lroundl(165.0f * diagScaleDiffPix) + diagX,
+		std::lroundl(86.0f * diagScaleDiffPix) + diagY,
+		btn1Width,
+		btn1Height
+	});
+
+	i32 btn2Size = std::lroundl((float(NICKNDIAGBTN2_IMG_SIZE.x) * 512.0f) / float(NICKNDIAG_IMG_SIZE.x) * diagSizeMul);
+	i32 btn2Width = btn2Size;
+	i32 btn2Height = std::lroundl(1.0f / NICKNDIAGBTN2_IMG_ARATIO * float(btn2Size));
+
+	nndbNWidget.setBounds({
+		std::lroundl(226.0f * diagScaleDiffPix) + diagX,
+		std::lroundl(86.0f * diagScaleDiffPix) + diagY,
+		btn2Width,
+		btn2Height
+	});
 }
 
 void TitleScene::showNicknameDialog()
@@ -289,9 +395,11 @@ void TitleScene::showNicknameDialog()
 	lastDialogAnimTimer = 0.0f;
 	nicknameDialogOpen = true;
 
+	nndTbWidget.setText(u8"");
+
 	auto area = Vec2i(Game::getFramebufferSize());
 	float windowFactor = (float(area.x * area.y) / BASE_WND_AREA);
-	renderExitDialog(area, windowFactor);
+	renderNicknameDialog(area, windowFactor);
 
 	setCommonWidgetsEnabled(false);
 

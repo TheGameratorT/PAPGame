@@ -7,7 +7,11 @@
 void Texture::load(const Path& path, GLE::TextureFilter magFilter)
 {
 	Image image = ImageIO::loadE<Pixel::RGBA8>(path);
+	fromImage(image, magFilter);
+}
 
+void Texture::fromImage(Image<Pixel::RGBA8>& image, GLE::TextureFilter magFilter)
+{
 	m_texture2D.create();
 	m_texture2D.bind();
 

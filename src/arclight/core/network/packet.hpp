@@ -3,7 +3,7 @@
 #include <array>
 
 #include "types.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 
 #include "packetbuffer.hpp"
 
@@ -39,12 +39,12 @@ public:
 	virtual void serialize(PacketBuffer& buf) const = 0;
 	[[nodiscard]] virtual const PacketProfile& getProfile() const = 0;
 
-	template<class T> requires BaseOf<Packet, T>
+	template<class T> requires CC::BaseOf<Packet, T>
 	static Packet* construct(PacketBuffer& buf)
 	{ return new T(buf); }
 };
 
 template<class T>
-concept PacketType = BaseOf<Packet, T>;
+concept PacketType = CC::BaseOf<Packet, T>;
 
 NETWORK_END

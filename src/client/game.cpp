@@ -18,6 +18,7 @@
 #include "render/renderer.hpp"
 #include "loadingscreen.hpp"
 #include "render/fader.hpp"
+#include "font/truetype/loader.hpp"
 
 #include "network/packet.hpp"
 #include "network/packetlist.hpp"
@@ -92,6 +93,7 @@ namespace Game
 	std::vector<std::unique_ptr<Object>> objects;
 	std::vector<KeyCallback> keyCallbacks;
 	std::vector<std::unique_ptr<KeyHandle_impl>> keyHandles;
+	std::unordered_map<std::string, std::unique_ptr<TrueType::Font>> loadedFonts;
 
 	PacketListener pktListener;
 	ClientConnection* connection;
@@ -209,13 +211,23 @@ namespace Game
 				if (keyHandle->key == key)
 					keyCallbacks[keyHandle->id](state);
 			}
+			gui.onKey(key, state);
+			return true;
+		});
+		inputHandler.setCharListener([](KeyChar chr){
+			gui.onKeyChar(chr);
 			return true;
 		});
 		inputHandler.setCursorListener([](double x, double y){
 			cursorPosition = { x, y };
 			return true;
 		});
+		inputSystem.enableHeldEvent();
 		inputSystem.connect(*window);
+
+		loadFont("arial", "@/arial.ttf");
+		loadFont("pixels", "@/PixeloidSans-nR3g1.ttf");
+		loadFont("smooth", "@/UDDigiKyokashoN-R.ttf");
 
 		gui.init();
 		Fader::init();
@@ -325,6 +337,7 @@ namespace Game
 		Renderer::destroy();
 		keyCallbacks.clear();
 		keyHandles.clear();
+		loadedFonts.clear();
 		window->close();
 		delete window;
 	}
@@ -435,6 +448,11 @@ namespace Game
 		return timer.getElapsedTime(Time::Unit::Seconds);
 	}
 
+	std::string getClipboard()
+	{
+		return window->getClipboardString();
+	}
+
 	Object* createObject(const ObjectProfile* profile)
 	{
 		Object* newObj = profile->ctor();
@@ -491,5 +509,23 @@ namespace Game
 		keyHandles.erase(keyHandles.begin() + i);
 		for (; i < keyCallbacks.size(); i++)
 			keyHandles[i]->id = i;
+	}
+
+	void loadFont(const std::string& fontName, const Path& fontPath)
+	{
+		std::vector<u8> fontData;
+
+		File fontFile(fontPath);
+		fontFile.open();
+		fontData = fontFile.readAll();
+		fontFile.close();
+
+		auto font = new TrueType::Font(TrueType::loadFont(fontData));
+		loadedFonts.insert({fontName, std::unique_ptr<TrueType::Font>(font)});
+	}
+
+	const TrueType::Font& getFont(const std::string& fontName)
+	{
+		return *loadedFonts.at(fontName);
 	}
 }

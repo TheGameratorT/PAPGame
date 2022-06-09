@@ -4,6 +4,7 @@
 
 #include "scene/splashscene.hpp"
 #include "scene/titlescene.hpp"
+#include "scene/lobbyscene.hpp"
 
 template<typename ...P>
 static consteval auto createObjectTable()
@@ -12,7 +13,8 @@ static consteval auto createObjectTable()
 static constexpr auto ObjectProfilesA =
 	createObjectTable<
 		SplashScene,
-		TitleScene
+		TitleScene,
+		LobbyScene
 	>();
 
 namespace Objects

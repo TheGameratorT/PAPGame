@@ -20,12 +20,14 @@ public:
 
 	void update();
 	void render();
-	void onMouseClick(Key key, KeyState state);
+	void onKey(Key key, KeyState state);
+	void onKeyChar(KeyChar chr);
+
+	[[nodiscard]] constexpr bool getCtrlDown() { return m_ctrlDown; }
 
 private:
 	Container m_container;
-	KeyHandle m_leftClick;
-	KeyHandle m_rightClick;
+	bool m_ctrlDown = false;
 };
 
 mGUI_END

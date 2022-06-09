@@ -4,6 +4,7 @@
 #include "render/texture.hpp"
 #include "gui/image.hpp"
 #include "gui/button.hpp"
+#include "gui/textbox.hpp"
 #include "gui/container.hpp"
 
 class TitleScene : public Scene
@@ -36,6 +37,15 @@ private:
 	Texture edb1Texture;
 	Texture edb2Texture;
 	Texture edb3Texture;
+	Texture nndBgTexture;
+	Texture nndDtTexture;
+	Texture nndTbTexture;
+	Texture nndb1Texture;
+	Texture nndb1cTexture;
+	Texture nndb1hTexture;
+	Texture nndb2Texture;
+	Texture nndb2cTexture;
+	Texture nndb2hTexture;
 	mGUI::Image titleWidget;
 	mGUI::Image bgWidget;
 	mGUI::Button createGameButtonWidget;
@@ -49,6 +59,11 @@ private:
 	mGUI::Image edDtWidget;
 	mGUI::Button edbYWidget;
 	mGUI::Button edbNWidget;
+	mGUI::Image nndBgWidget;
+	mGUI::Image nndDtWidget;
+	mGUI::TextBox nndTbWidget;
+	mGUI::Button nndbYWidget;
+	mGUI::Button nndbNWidget;
 
 	float dialogAnimTimer = 0.0f;
 	float lastDialogAnimTimer = 0.0f;

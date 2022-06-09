@@ -17,7 +17,7 @@ public:
 
 	void update() override;
 	void render() override;
-	void onClick(Key key, KeyState state) override;
+	void onKey(Key key, KeyState state) override;
 
 	inline void setOnClick(const MouseClickCallback& mouseClickCallback)
 	{ m_mouseClickCallback = mouseClickCallback; }

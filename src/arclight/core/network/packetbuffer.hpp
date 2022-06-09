@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 #include "common.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 
 #include <string>
 #include <vector>
@@ -27,7 +27,7 @@ public:
 	const std::vector<char>& getData() const
 	{ return m_data; }
 
-	template<Integral T>
+	template<CC::Integral T>
 	T read()
 	{
 		T val = *reinterpret_cast<T*>(&m_data[m_cursor]);
@@ -35,7 +35,7 @@ public:
 		return val;
 	}
 
-	template<Integral T>
+	template<CC::Integral T>
 	void write(T val)
 	{
 		std::size_t writeSize = sizeof(T);

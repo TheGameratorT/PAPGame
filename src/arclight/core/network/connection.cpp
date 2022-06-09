@@ -268,7 +268,7 @@ void Connection::handleErrorA(const ConnectionError& error)
 		m_errorHandler(error);
 }
 
-template<typename ...Args> requires Constructible<ConnectionError, Args...>
+template<typename ...Args> requires CC::Constructible<ConnectionError, Args...>
 void Connection::handleError(Args&&... args)
 { handleErrorA(ConnectionError(std::forward<Args>(args)...)); }
 

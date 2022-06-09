@@ -6,14 +6,10 @@ mGUI_BEGIN
 
 void Interface::init()
 {
-	m_leftClick = Game::bindKey(MouseCode::Left, [this](KeyState state){onMouseClick(MouseCode::Left, state);});
-	m_rightClick = Game::bindKey(MouseCode::Right, [this](KeyState state){onMouseClick(MouseCode::Right, state);});
 }
 
 void Interface::destroy()
 {
-	Game::unbindKey(m_leftClick);
-	Game::unbindKey(m_rightClick);
 }
 
 void Interface::update()
@@ -26,9 +22,21 @@ void Interface::render()
 	m_container.render();
 }
 
-void Interface::onMouseClick(Key key, KeyState state)
+void Interface::onKey(Key key, KeyState state)
 {
-	m_container.onClick(key, state);
+	m_container.onKey(key, state);
+	if (key == KeyCode::LeftControl)
+	{
+		if (state == KeyState::Pressed)
+			m_ctrlDown = true;
+		else if (state == KeyState::Released)
+			m_ctrlDown = false;
+	}
+}
+
+void Interface::onKeyChar(KeyChar chr)
+{
+	m_container.onKeyChar(chr);
 }
 
 mGUI_END

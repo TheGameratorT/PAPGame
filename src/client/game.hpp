@@ -10,6 +10,8 @@
 #include "input/keyhandle.hpp"
 #include "input/keydefs.hpp"
 
+#include "font/truetype/truetype.hpp"
+
 namespace Game
 {
 	using KeyCallback = std::function<void(KeyState)>;
@@ -45,6 +47,8 @@ namespace Game
 	[[nodiscard]] inline mGUI::Interface& getGUI() { return gui; }
 	[[nodiscard]] inline Vec2d& getCursorPosition() { return cursorPosition; }
 
+	std::string getClipboard();
+
 	void switchScene(const ObjectProfile* profile);
 
 	template<SceneType T>
@@ -62,6 +66,9 @@ namespace Game
 	KeyHandle bindKey(Key key, const KeyCallback& callback);
 
 	void unbindKey(KeyHandle handle);
+
+	void loadFont(const std::string& fontName, const Path& fontPath);
+	const TrueType::Font& getFont(const std::string& fontName);
 
 	inline void quit()
 	{ shouldQuitGame = true; }

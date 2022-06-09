@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 
 #include "object.hpp"
 #include "objects.hpp"
@@ -19,4 +19,4 @@ public:
 };
 
 template<class T>
-concept SceneType = BaseOf<Scene, T>;
+concept SceneType = CC::BaseOf<Scene, T>;

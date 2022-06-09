@@ -98,3 +98,11 @@ void PNGDecoder::decode(std::span<const u8> data)
 
 	validDecode = true;
 }
+
+RawImage& PNGDecoder::getImage()
+{
+	if (!validDecode)
+		throw ImageDecoderException("Bad image decode");
+
+	return image;
+}

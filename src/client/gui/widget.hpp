@@ -15,7 +15,8 @@ public:
 	virtual void update();
 	virtual void render();
 
-	virtual void onClick(Key key, KeyState state);
+	virtual void onKey(Key key, KeyState state);
+	virtual void onKeyChar(KeyChar chr);
 
 	constexpr void setParent(Widget* parent) { m_parent = parent; }
 	[[nodiscard]] constexpr Widget* getParent() const { return m_parent; }

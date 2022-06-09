@@ -62,26 +62,26 @@ std::string ConfigFile::get(const std::string& key, const std::string& defValue)
 	return m_map.at(key);
 }
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 T ConfigFile::get(const std::string& key, T defValue)
 {
-	if (Equal<int, T>)
+	if (CC::Equal<int, T>)
 		return static_cast<int>(get<long long>(key, defValue)); // Reuse the "long long" getter function
-	else if (Equal<float, T>)
+	else if (CC::Equal<float, T>)
 		return static_cast<float>(get<double>(key, defValue)); // Reuse the "double" getter function
 
 	if (!m_map.contains(key))
 	{
-		if (Equal<bool, T>)
+		if (CC::Equal<bool, T>)
 			m_map.insert({key, String::fromBool(defValue)});
 		else
 			m_map.insert({key, std::to_string(defValue)});
 		return defValue;
 	}
 	std::string valueStr = m_map.at(key);
-	if (Equal<bool, T>)
+	if (CC::Equal<bool, T>)
 		return valueStr == "true";
-	else if (Equal<long long, T>)
+	else if (CC::Equal<long long, T>)
 		return std::stol(valueStr);
 	return std::stod(valueStr);
 }
@@ -97,24 +97,24 @@ void ConfigFile::set(const std::string& key, const std::string& value)
 	m_map.insert_or_assign(key, value);
 }
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 void ConfigFile::set(const std::string& key, T value)
 {
-	if (Equal<int, T>)
+	if (CC::Equal<int, T>)
 	{
 		set<long long>(key, value); // Reuse the "long long" setter function
 		return;
 	}
-	else if (Equal<float, T>)
+	else if (CC::Equal<float, T>)
 	{
 		set<double>(key, value); // Reuse the "double" getter function
 		return;
 	}
 
 	std::string valueStr;
-	if (Equal<bool, T>)
+	if (CC::Equal<bool, T>)
 		valueStr = String::fromBool(value);
-	else if (Integer<T> || Equal<double, T>)
+	else if (CC::Integer<T> || CC::Equal<double, T>)
 		valueStr = std::to_string(value);
 	m_map.insert_or_assign(key, valueStr);
 }

@@ -41,9 +41,12 @@ void Button::render()
 	m_image.render();
 }
 
-void Button::onClick(Key key, KeyState state)
+void Button::onKey(Key key, KeyState state)
 {
 	if (!m_enabled)
+		return;
+
+	if (key != MouseCode::Left)
 		return;
 
 	Vec2d cursorPos = Game::getCursorPosition();

@@ -57,7 +57,7 @@ public:
 
 	void sendPacket(const Packet& packet);
 
-	template<PacketType T, typename ...Args> requires Constructible<T, Args...>
+	template<PacketType T, typename ...Args> requires CC::Constructible<T, Args...>
 	inline void sendPacket(Args&&... args)
 	{ sendPacket(T(std::forward<Args>(args)...)); }
 
@@ -99,7 +99,7 @@ protected:
 
 	void handleErrorA(const ConnectionError& error);
 
-	template<typename ...Args> requires Constructible<ConnectionError, Args...>
+	template<typename ...Args> requires CC::Constructible<ConnectionError, Args...>
 	inline void handleError(Args&&... args);
 };
 
