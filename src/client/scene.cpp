@@ -24,3 +24,8 @@ void Scene::onDestroyRequest()
 {
 	destroy();
 }
+
+void Scene::onConnectionLost()
+{
+
+}

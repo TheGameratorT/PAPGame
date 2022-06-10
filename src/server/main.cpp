@@ -12,6 +12,7 @@
 #include "render/gle/render.hpp"
 #include "render/gui/imgui/window.hpp"
 #include "render/gui/imgui/label.hpp"
+#include "image/imageio.hpp"
 
 static std::vector<std::unique_ptr<NetPlayer>> m_players;
 
@@ -30,6 +31,9 @@ u32 arcMain(const std::vector<std::string>& args)
 		return 1;
 	}
 	window->enableVSync();
+
+	Image iconImage = ImageIO::load<Pixel::RGBA8>("@/logo.bmp");
+	window->setIcon(iconImage);
 
 	GUI::initialize(*window);
 

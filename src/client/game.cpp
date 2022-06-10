@@ -15,38 +15,12 @@
 #include "objects.hpp"
 #include "scene/splashscene.hpp"
 #include "scene/titlescene.hpp"
+#include "scene/lobbyscene.hpp"
 #include "render/renderer.hpp"
 #include "loadingscreen.hpp"
 #include "render/fader.hpp"
 #include "font/truetype/loader.hpp"
-
-#include "network/packet.hpp"
-#include "network/packetlist.hpp"
-#include "network/clientconnection.hpp"
-#include "network/packet/pkt_c2s_handshake.hpp"
-#include "network/connectedclient.hpp"
-#include "network/server.hpp"
-#include "network/packettable.hpp"
-
-using namespace Network;
-
-#define PKT_LSTNR_JUMP(id, type, func) case id: func(static_cast<const type&>(packet)); break
-
-class PacketListener
-{
-public:
-	void operator()(PacketID id, const Packet& packet)
-	{
-		switch(id)
-		{
-		PKT_LSTNR_JUMP(0, PKT_C2S_Handshake, onHandshake);
-		}
-	}
-
-	void onHandshake(const PKT_C2S_Handshake& packet)
-	{
-	}
-};
+#include "network/gamenet.hpp"
 
 class KeyHandle_impl
 {
@@ -57,6 +31,12 @@ public:
 
 	u32 id;
 	Key key;
+};
+
+struct ScheduledTask
+{
+	Game::TaskCallback callback;
+	float firingTime;
 };
 
 namespace Game
@@ -94,79 +74,13 @@ namespace Game
 	std::vector<KeyCallback> keyCallbacks;
 	std::vector<std::unique_ptr<KeyHandle_impl>> keyHandles;
 	std::unordered_map<std::string, std::unique_ptr<TrueType::Font>> loadedFonts;
+	std::vector<std::unique_ptr<ScheduledTask>> scheduledTasks;
 
-	PacketListener pktListener;
-	ClientConnection* connection;
-	int connerr;
-
-	ClientConnection* getConn()
-	{
-		return connection;
-	}
-
-	int gotConnErr()
-	{
-		return connerr;
-	}
+	U8String playerName;
 
 	bool init()
 	{
-		connerr = 0;
-
-		connection = new ClientConnection();
-
-		connection->setOutgoingPackets(PacketTable::packetsC2S);
-		connection->setIncomingPackets(PacketTable::packetsS2C);
-		connection->setIncomingPacketListener(pktListener);
-		connection->setErrorHandler([&](const ConnectionError& error){
-			std::ostringstream out;
-			switch (error.value())
-			{
-			case ConnectionError::ConnectionFailed: {
-				if (ClientConnection::checkConnectCanceled(error.getCode())) {
-					out << "Error connecting to server. (Reason: Cancelled by user)";
-				} else {
-					out << "Error connecting to server. (Code: " << error.getCode() << ")";
-				}
-			} break;
-			case ConnectionError::SendPacketUnlisted: {
-				out << "Error trying to send packet, " <<
-				error.arg<PacketProfile>()->name << " was not registered.";
-			} break;
-			case ConnectionError::SendPacketWrite: {
-				out << "Error writing outgoing packet. (Code: " << error.getCode() << ")";
-			} break;
-			case ConnectionError::ReadPacketHeader: {
-				out << "Error reading incoming packet header. (Code: " << error.getCode() << ")";
-			} break;
-			case ConnectionError::ReadPacketBody: {
-				out << "Error reading incoming packet body. (Code: " << error.getCode() << ")";
-			} break;
-			case ConnectionError::ReadPacketInvalid: {
-				out << "Error identifying incoming packet. (Packet ID: " << *error.arg<u32>() << ")";
-			} break;
-			case ConnectionError::ReadPacketBufferExceeded: {
-				auto* info = error.arg<PacketReceiveBufExceedInfo>();
-				out << "Error reading incoming packet body, "
-					   "packet exceeds buffer size. (ID: "
-					<< info->pktID << ", Size: " << info->pktSize << ")";
-			} break;
-			}
-			/*if (error.category() == NetworkConnectionError::Category::ReadPacket)
-				connection.sendPacket<PKT_S2C_Disconnect>(out.str());*/
-			Log::error("GameNetwork", out.str());
-			connection->close();
-			connerr = 1;
-		});
-		connection->connect("localhost", 25565);
-		connection->setConnectHandler([](){
-			Log::info("NetworkConnection", "Connection estabilished.");
-		});
-		connection->setDisconnectHandler([](){
-			Log::info("NetworkConnection", "Connection lost.");
-			connerr = 2;
-		});
-		connection->sendPacket<PKT_C2S_Handshake>(GameInfo::handshakeMagic, GameInfo::version);
+		GameNet::init();
 
 		config.load("#/config.txt");
 
@@ -327,9 +241,7 @@ namespace Game
 
 	void destroy()
 	{
-		connection->close();
-		delete connection;
-
+		GameNet::destroy();
 		LoadingScreen::destroy();
 		Fader::destroy();
 		gui.destroy();
@@ -338,18 +250,20 @@ namespace Game
 		keyCallbacks.clear();
 		keyHandles.clear();
 		loadedFonts.clear();
+		scheduledTasks.clear();
 		window->close();
 		delete window;
 	}
 
 	void reload()
 	{
+		GameNet::disconnect();
 		if (currentScene != nullptr)
 		{
 			currentScene->onDestroy();
-			LoadingScreen::close();
 			delete currentScene;
 		}
+		LoadingScreen::close();
 		createScene<TitleScene>();
 	}
 
@@ -375,6 +289,17 @@ namespace Game
 		}
 
 		LoadingScreen::update();
+
+		SizeT scheduledTaskCount = scheduledTasks.size();
+		for (SizeT i = scheduledTaskCount - 1; i <= 0; i--)
+		{
+			ScheduledTask& scheduledTask = *scheduledTasks[i];
+			if (getElapsedTime() > scheduledTask.firingTime)
+			{
+				scheduledTask.callback();
+				scheduledTasks.erase(scheduledTasks.begin() + i);
+			}
+		}
 
 		currentScene->onUpdate();
 
@@ -527,5 +452,33 @@ namespace Game
 	const TrueType::Font& getFont(const std::string& fontName)
 	{
 		return *loadedFonts.at(fontName);
+	}
+
+	void connect(const std::string& address, u16 port)
+	{
+		GameNet::connect(address, port, [](bool success){
+			if (success)
+			{
+				switchScene<LobbyScene>();
+			}
+			else
+			{
+				if (currentScene)
+					currentScene->onConnectionLost();
+			}
+		});
+	}
+
+	void schedule(const TaskCallback& callback, u32 delayMs)
+	{
+		ScheduledTask task;
+		task.callback = callback;
+		task.firingTime = float(getElapsedTime() + float(delayMs) / 1000.0f);
+		scheduledTasks.push_back(std::make_unique<ScheduledTask>(task));
+	}
+
+	void setPlayerName(const U8String& name)
+	{
+		playerName = name;
 	}
 }

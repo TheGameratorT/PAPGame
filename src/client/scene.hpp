@@ -13,6 +13,7 @@ public:
 	void onRender() override;
 	void onDestroy() override;
 	virtual void onDestroyRequest();
+	virtual void onConnectionLost();
 
 	constexpr static Scene* cast(void* other)
 	{ return static_cast<Scene*>(other); }

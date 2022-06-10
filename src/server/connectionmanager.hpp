@@ -11,7 +11,7 @@ class ConnectedClientHandle
 {
 public:
 	ConnectedClientHandle(u32 id, Network::ConnectedClientPtr connection, bool didHandshake) :
-		m_id(id), m_connection(std::move(connection)), m_listener(nullptr), m_didHandshake(didHandshake), m_userPtr(nullptr)
+		m_id(id), m_connection(std::move(connection)), m_listener(nullptr), m_didHandshake(didHandshake)//, m_userPtr(nullptr)
 	{}
 
 	~ConnectedClientHandle();

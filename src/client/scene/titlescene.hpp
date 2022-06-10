@@ -17,11 +17,14 @@ public:
 	void onRender() override;
 	void onDestroy() override;
 	void onDestroyRequest() override;
+	void onConnectionLost() override;
 
 private:
 	mGUI::Container canvas;
 	mGUI::Container exitDialogCanvas;
-	mGUI::Container nicknameDialogCanvas;
+	mGUI::Container textDialogCanvas;
+	mGUI::Container connDialogCanvas;
+
 	Texture titleTexture;
 	Texture bgTexture;
 	Texture buttonTexture;
@@ -32,20 +35,28 @@ private:
 	Texture exitTexture;
 	Texture aboutTexture;
 	Texture settingsTexture;
+
 	Texture edBgTexture;
 	Texture edDtTexture;
 	Texture edb1Texture;
 	Texture edb2Texture;
 	Texture edb3Texture;
-	Texture nndBgTexture;
+
+	Texture txtBgTexture;
 	Texture nndDtTexture;
-	Texture nndTbTexture;
-	Texture nndb1Texture;
-	Texture nndb1cTexture;
-	Texture nndb1hTexture;
-	Texture nndb2Texture;
-	Texture nndb2cTexture;
-	Texture nndb2hTexture;
+	Texture ipdDtTexture;
+	Texture txtTbTexture;
+	Texture txtb1Texture;
+	Texture txtb1cTexture;
+	Texture txtb1hTexture;
+	Texture txtb2Texture;
+	Texture txtb2cTexture;
+	Texture txtb2hTexture;
+
+	Texture connBgTexture;
+	Texture connDt1Texture;
+	Texture connDt2Texture;
+
 	mGUI::Image titleWidget;
 	mGUI::Image bgWidget;
 	mGUI::Button createGameButtonWidget;
@@ -55,21 +66,29 @@ private:
 	mGUI::Button exitWidget;
 	mGUI::Button aboutWidget;
 	mGUI::Button settingsWidget;
+
 	mGUI::Image edBgWidget;
 	mGUI::Image edDtWidget;
 	mGUI::Button edbYWidget;
 	mGUI::Button edbNWidget;
-	mGUI::Image nndBgWidget;
-	mGUI::Image nndDtWidget;
-	mGUI::TextBox nndTbWidget;
-	mGUI::Button nndbYWidget;
-	mGUI::Button nndbNWidget;
+
+	mGUI::Image txtBgWidget;
+	mGUI::Image txtDtWidget;
+	mGUI::TextBox txtTbWidget;
+	mGUI::Button txtbYWidget;
+	mGUI::Button txtbNWidget;
+
+	mGUI::Image connBgWidget;
+	mGUI::Image connDtWidget;
 
 	float dialogAnimTimer = 0.0f;
 	float lastDialogAnimTimer = 0.0f;
 
 	bool exitDialogOpen = false;
-	bool nicknameDialogOpen = false;
+	bool textDialogOpen = false;
+	bool connDialogOpen = false;
+
+	bool switchingScene = false;
 
 	void setCommonWidgetsEnabled(bool enabled);
 
@@ -77,7 +96,15 @@ private:
 	void showExitDialog();
 	void closeExitDialog();
 
-	void renderNicknameDialog(const Vec2i& area, float windowFactor);
+	void renderTextDialog(const Vec2i& area, float windowFactor);
+	void showTextDialog();
+	void closeTextDialog();
+
 	void showNicknameDialog();
-	void closeNicknameDialog();
+	void showIPDialog();
+	void connectToServer();
+
+	void renderConnDialog(const Vec2i& area, float windowFactor);
+	void showConnDialog();
+	void closeConnDialog();
 };

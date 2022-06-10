@@ -1,6 +1,7 @@
 #include "titlescene.hpp"
 
 #include "game.hpp"
+#include "render/fader.hpp"
 
 constexpr u32 TICK_RATE = 30;
 constexpr float TICK_DURATION = 1.0f / TICK_RATE;
@@ -21,6 +22,8 @@ constexpr Vec2i NICKNDIAGBTN1_IMG_SIZE = { 53, 25 };
 constexpr float NICKNDIAGBTN1_IMG_ARATIO = float(NICKNDIAGBTN1_IMG_SIZE.x) / float(NICKNDIAGBTN1_IMG_SIZE.y);
 constexpr Vec2i NICKNDIAGBTN2_IMG_SIZE = { 62, 25 };
 constexpr float NICKNDIAGBTN2_IMG_ARATIO = float(NICKNDIAGBTN2_IMG_SIZE.x) / float(NICKNDIAGBTN2_IMG_SIZE.y);
+
+constexpr float CONNDIAG_IMG_ARATIO = 302.0f / 121.0f;
 
 IMPL_OBJECT(TitleScene)
 
@@ -43,15 +46,19 @@ void TitleScene::onCreate()
 	edb1Texture.load("@/title/edb1.png", GLE::TextureFilter::None);
 	edb2Texture.load("@/title/edb2.png", GLE::TextureFilter::None);
 	edb3Texture.load("@/title/edb3.png", GLE::TextureFilter::None);
-	nndBgTexture.load("@/title/name_diag_bg.png", GLE::TextureFilter::None);
+	txtBgTexture.load("@/title/txt_diag_bg.png", GLE::TextureFilter::None);
 	nndDtTexture.load("@/title/name_diag_dt.png", GLE::TextureFilter::None);
-	nndTbTexture.load("@/title/nndtb.png", GLE::TextureFilter::None);
-	nndb1Texture.load("@/title/nndb1.png", GLE::TextureFilter::None);
-	nndb1cTexture.load("@/title/nndb1_c.png", GLE::TextureFilter::None);
-	nndb1hTexture.load("@/title/nndb1_h.png", GLE::TextureFilter::None);
-	nndb2Texture.load("@/title/nndb2.png", GLE::TextureFilter::None);
-	nndb2cTexture.load("@/title/nndb2_c.png", GLE::TextureFilter::None);
-	nndb2hTexture.load("@/title/nndb2_h.png", GLE::TextureFilter::None);
+	ipdDtTexture.load("@/title/ip_diag_dt.png", GLE::TextureFilter::None);
+	txtTbTexture.load("@/title/txttb.png", GLE::TextureFilter::None);
+	txtb1Texture.load("@/title/txtb1.png", GLE::TextureFilter::None);
+	txtb1cTexture.load("@/title/txtb1_c.png", GLE::TextureFilter::None);
+	txtb1hTexture.load("@/title/txtb1_h.png", GLE::TextureFilter::None);
+	txtb2Texture.load("@/title/txtb2.png", GLE::TextureFilter::None);
+	txtb2cTexture.load("@/title/txtb2_c.png", GLE::TextureFilter::None);
+	txtb2hTexture.load("@/title/txtb2_h.png", GLE::TextureFilter::None);
+	connBgTexture.load("@/title/conn_diag.png", GLE::TextureFilter::None);
+	connDt1Texture.load("@/title/conn_diag_1.png", GLE::TextureFilter::None);
+	connDt2Texture.load("@/title/conn_diag_2.png", GLE::TextureFilter::None);
 
 	titleWidget.setTexture(&titleTexture);
 	bgWidget.setTexture(&bgTexture);
@@ -74,15 +81,15 @@ void TitleScene::onCreate()
 	edbNWidget.setTexture(&edb1Texture);
 	edbNWidget.setHoverTexture(&edb2Texture);
 	edbNWidget.setHeldTexture(&edb3Texture);
-	nndBgWidget.setTexture(&nndBgTexture);
-	nndDtWidget.setTexture(&nndDtTexture);
-	nndTbWidget.setTexture(&nndTbTexture);
-	nndbYWidget.setTexture(&nndb1Texture);
-	nndbYWidget.setHoverTexture(&nndb1hTexture);
-	nndbYWidget.setHeldTexture(&nndb1cTexture);
-	nndbNWidget.setTexture(&nndb2Texture);
-	nndbNWidget.setHoverTexture(&nndb2hTexture);
-	nndbNWidget.setHeldTexture(&nndb2cTexture);
+	txtBgWidget.setTexture(&txtBgTexture);
+	txtTbWidget.setTexture(&txtTbTexture);
+	txtbYWidget.setTexture(&txtb1Texture);
+	txtbYWidget.setHoverTexture(&txtb1hTexture);
+	txtbYWidget.setHeldTexture(&txtb1cTexture);
+	txtbNWidget.setTexture(&txtb2Texture);
+	txtbNWidget.setHoverTexture(&txtb2hTexture);
+	txtbNWidget.setHeldTexture(&txtb2cTexture);
+	connBgWidget.setTexture(&connBgTexture);
 
 	bgWidget.setZIndex(0);
 	createGameTextWidget.setZIndex(1010);
@@ -93,25 +100,22 @@ void TitleScene::onCreate()
 	edbYWidget.setZIndex(1021);
 	edbNWidget.setZIndex(1021);
 
-	nndBgWidget.setZIndex(1020);
-	nndDtWidget.setZIndex(1021);
-	nndTbWidget.setZIndex(1022);
-	nndbYWidget.setZIndex(1022);
-	nndbNWidget.setZIndex(1022);
+	txtBgWidget.setZIndex(1020);
+	txtDtWidget.setZIndex(1021);
+	txtTbWidget.setZIndex(1022);
+	txtbYWidget.setZIndex(1022);
+	txtbNWidget.setZIndex(1022);
 
-	nndTbWidget.setFontScale(0.70f);
-	nndTbWidget.setTextSidePadding(768.0f);
-	nndTbWidget.setMaxCharacters(16);
+	connBgWidget.setZIndex(1020);
+	connDtWidget.setZIndex(1021);
 
 	exitWidget.setOnClick([this](){ showExitDialog(); });
 	edbYWidget.setOnClick([](){ Game::quit(); });
 	edbNWidget.setOnClick([this](){ closeExitDialog(); });
 
-	joinGameButtonWidget.setOnClick([this](){
-		showNicknameDialog();
-	});
+	joinGameButtonWidget.setOnClick([this](){ showNicknameDialog(); });
 
-	nndbNWidget.setOnClick([this](){ closeNicknameDialog(); });
+	txtbNWidget.setOnClick([this](){ closeTextDialog(); });
 
 	canvas.addWidget(titleWidget);
 	canvas.addWidget(bgWidget);
@@ -132,21 +136,34 @@ void TitleScene::onCreate()
 	exitDialogCanvas.setVisible(false);
 	canvas.addWidget(exitDialogCanvas);
 
-	nicknameDialogCanvas.addWidget(nndBgWidget);
-	nicknameDialogCanvas.addWidget(nndDtWidget);
-	nicknameDialogCanvas.addWidget(nndTbWidget);
-	nicknameDialogCanvas.addWidget(nndbYWidget);
-	nicknameDialogCanvas.addWidget(nndbNWidget);
-	nicknameDialogCanvas.setZIndex(1051);
-	nicknameDialogCanvas.setVisible(false);
-	canvas.addWidget(nicknameDialogCanvas);
+	textDialogCanvas.addWidget(txtBgWidget);
+	textDialogCanvas.addWidget(txtDtWidget);
+	textDialogCanvas.addWidget(txtTbWidget);
+	textDialogCanvas.addWidget(txtbYWidget);
+	textDialogCanvas.addWidget(txtbNWidget);
+	textDialogCanvas.setZIndex(1051);
+	textDialogCanvas.setVisible(false);
+	canvas.addWidget(textDialogCanvas);
+
+	connDialogCanvas.addWidget(connBgWidget);
+	connDialogCanvas.addWidget(connDtWidget);
+	connDialogCanvas.setZIndex(1051);
+	connDialogCanvas.setVisible(false);
+	canvas.addWidget(connDialogCanvas);
 
 	Game::getGUI().getContainer().addWidget(canvas);
 }
 
 void TitleScene::onUpdate()
 {
-	if (exitDialogOpen || nicknameDialogOpen)
+	if (switchingScene)
+	{
+		if (Fader::hasFadingFinished())
+			destroy();
+		return;
+	}
+
+	if (exitDialogOpen || textDialogOpen || connDialogOpen)
 	{
 		lastDialogAnimTimer = dialogAnimTimer;
 		if (dialogAnimTimer < 1.0f)
@@ -220,9 +237,10 @@ void TitleScene::onRender()
 
 	if (exitDialogOpen)
 		renderExitDialog(area, windowFactor);
-
-	if (nicknameDialogOpen)
-		renderNicknameDialog(area, windowFactor);
+	if (textDialogOpen)
+		renderTextDialog(area, windowFactor);
+	if (connDialogOpen)
+		renderConnDialog(area, windowFactor);
 }
 
 void TitleScene::onDestroy()
@@ -245,20 +263,30 @@ void TitleScene::onDestroy()
 	edb1Texture.destroy();
 	edb2Texture.destroy();
 	edb3Texture.destroy();
-	nndBgTexture.destroy();
+	txtBgTexture.destroy();
 	nndDtTexture.destroy();
-	nndTbTexture.destroy();
-	nndb1Texture.destroy();
-	nndb1cTexture.destroy();
-	nndb1hTexture.destroy();
-	nndb2Texture.destroy();
-	nndb2cTexture.destroy();
-	nndb2hTexture.destroy();
+	ipdDtTexture.destroy();
+	txtTbTexture.destroy();
+	txtb1Texture.destroy();
+	txtb1cTexture.destroy();
+	txtb1hTexture.destroy();
+	txtb2Texture.destroy();
+	txtb2cTexture.destroy();
+	txtb2hTexture.destroy();
+	connBgTexture.destroy();
+	connDt1Texture.destroy();
+	connDt2Texture.destroy();
 }
 
 void TitleScene::onDestroyRequest()
 {
-	destroy();
+	switchingScene = true;
+}
+
+void TitleScene::onConnectionLost()
+{
+	connDtWidget.setTexture(&connDt2Texture);
+	Game::schedule([this](){ closeConnDialog(); }, 2000);
 }
 
 void TitleScene::setCommonWidgetsEnabled(bool enabled)
@@ -333,7 +361,7 @@ void TitleScene::closeExitDialog()
 	exitDialogOpen = false;
 }
 
-void TitleScene::renderNicknameDialog(const Vec2i& area, float windowFactor)
+void TitleScene::renderTextDialog(const Vec2i& area, float windowFactor)
 {
 	float diagSizeGrowthMul = 4.5f;
 	float diagSizeMul = (windowFactor / diagSizeGrowthMul) + (1.0f - (1.0f / diagSizeGrowthMul));
@@ -349,14 +377,14 @@ void TitleScene::renderNicknameDialog(const Vec2i& area, float windowFactor)
 	i32 diagX = (area.x - diagWidth) / 2;
 	i32 diagY = (area.y - diagHeight) / 2;
 
-	nndBgWidget.setBounds({diagX, diagY, diagWidth, diagHeight});
-	nndDtWidget.setBounds(nndBgWidget.getBounds());
+	txtBgWidget.setBounds({diagX, diagY, diagWidth, diagHeight});
+	txtDtWidget.setBounds(txtBgWidget.getBounds());
 
 	i32 textboxSize = std::lroundl((float(NICKNDIAGTB_IMG_SIZE.x) * 512.0f) / float(NICKNDIAG_IMG_SIZE.x) * diagSizeMul);
 	i32 textboxWidth = textboxSize;
 	i32 textboxHeight = std::lroundl(1.0f / NICKNDIAGTB_IMG_ARATIO * float(textboxSize));
 
-	nndTbWidget.setBounds({
+	txtTbWidget.setBounds({
 		std::lroundl(13.0f * diagScaleDiffPix) + diagX,
 		std::lroundl(44.0f * diagScaleDiffPix) + diagY,
 		textboxWidth,
@@ -367,7 +395,7 @@ void TitleScene::renderNicknameDialog(const Vec2i& area, float windowFactor)
 	i32 btn1Width = btn1Size;
 	i32 btn1Height = std::lroundl(1.0f / NICKNDIAGBTN1_IMG_ARATIO * float(btn1Size));
 
-	nndbYWidget.setBounds({
+	txtbYWidget.setBounds({
 		std::lroundl(165.0f * diagScaleDiffPix) + diagX,
 		std::lroundl(86.0f * diagScaleDiffPix) + diagY,
 		btn1Width,
@@ -378,7 +406,7 @@ void TitleScene::renderNicknameDialog(const Vec2i& area, float windowFactor)
 	i32 btn2Width = btn2Size;
 	i32 btn2Height = std::lroundl(1.0f / NICKNDIAGBTN2_IMG_ARATIO * float(btn2Size));
 
-	nndbNWidget.setBounds({
+	txtbNWidget.setBounds({
 		std::lroundl(226.0f * diagScaleDiffPix) + diagX,
 		std::lroundl(86.0f * diagScaleDiffPix) + diagY,
 		btn2Width,
@@ -386,31 +414,156 @@ void TitleScene::renderNicknameDialog(const Vec2i& area, float windowFactor)
 	});
 }
 
-void TitleScene::showNicknameDialog()
+void TitleScene::showTextDialog()
 {
-	if (nicknameDialogOpen)
+	if (textDialogOpen)
 		return;
 
 	dialogAnimTimer = 0.0f;
 	lastDialogAnimTimer = 0.0f;
-	nicknameDialogOpen = true;
+	textDialogOpen = true;
 
-	nndTbWidget.setText(u8"");
+	txtTbWidget.setText(u8"");
 
 	auto area = Vec2i(Game::getFramebufferSize());
 	float windowFactor = (float(area.x * area.y) / BASE_WND_AREA);
-	renderNicknameDialog(area, windowFactor);
+	renderTextDialog(area, windowFactor);
 
 	setCommonWidgetsEnabled(false);
 
-	nicknameDialogCanvas.setVisible(true);
+	textDialogCanvas.setVisible(true);
 }
 
-void TitleScene::closeNicknameDialog()
+void TitleScene::closeTextDialog()
 {
-	nicknameDialogCanvas.setVisible(false);
+	textDialogCanvas.setVisible(false);
 
 	setCommonWidgetsEnabled(true);
 
-	nicknameDialogOpen = false;
+	textDialogOpen = false;
+}
+
+void TitleScene::showNicknameDialog()
+{
+	txtDtWidget.setTexture(&nndDtTexture);
+
+	txtTbWidget.setFont("pixels");
+	txtTbWidget.setFontScale(0.70f);
+	txtTbWidget.setTextSidePadding(768.0f);
+	txtTbWidget.setMaxCharacters(16);
+	txtTbWidget.setCharValidator([](KeyChar chr){ return true; });
+
+	auto onClick = [this](){
+		const U8String& txt = txtTbWidget.getText();
+		if (!txt.empty())
+		{
+			Game::setPlayerName(txt);
+			closeTextDialog();
+			showIPDialog();
+		}
+	};
+
+	txtbYWidget.setOnClick(onClick);
+	txtTbWidget.setOnEnter(onClick);
+
+	showTextDialog();
+}
+
+void TitleScene::showIPDialog()
+{
+	txtDtWidget.setTexture(&ipdDtTexture);
+
+	txtTbWidget.setFont("smooth");
+	txtTbWidget.setFontScale(0.70f);
+	txtTbWidget.setTextSidePadding(768.0f);
+	txtTbWidget.setMaxCharacters(21);
+	txtTbWidget.setCharValidator([](KeyChar chr){
+		return (chr >= 48 && chr <= 58) || chr == 46;
+	});
+
+	auto onClick = [this](){
+		const U8String& txt = txtTbWidget.getText();
+		if (!txt.empty())
+		{
+			closeTextDialog();
+			showConnDialog();
+			connectToServer();
+		}
+	};
+
+	txtbYWidget.setOnClick(onClick);
+	txtTbWidget.setOnEnter(onClick);
+
+	showTextDialog();
+}
+
+void TitleScene::connectToServer()
+{
+	const U8String& txt = txtTbWidget.getText();
+	const char* txtc = reinterpret_cast<const char*>(txt.data());
+
+	const char* sepPos = std::strchr(txtc, ':');
+
+	std::string ip;
+	u16 port;
+
+	if (sepPos == nullptr)
+	{
+		ip = txtc;
+		port = 25565;
+	}
+	else
+	{
+		ip = std::string(txtc, sepPos);
+		port = std::atoi(sepPos + 1);
+	}
+
+	Game::connect(ip, port);
+}
+
+void TitleScene::renderConnDialog(const Vec2i& area, float windowFactor)
+{
+	float diagSizeGrowthMul = 4.5f;
+	float diagSizeMul = (windowFactor / diagSizeGrowthMul) + (1.0f - (1.0f / diagSizeGrowthMul));
+
+	diagSizeMul *= Math::lerp(lastDialogAnimTimer, dialogAnimTimer, Game::getTickAlpha());
+
+	i32 diagSize = std::lroundl(512.0f * diagSizeMul);
+	i32 diagWidth = diagSize;
+	i32 diagHeight = std::lroundl(1.0f / CONNDIAG_IMG_ARATIO * float(diagSize));
+
+	i32 diagX = (area.x - diagWidth) / 2;
+	i32 diagY = (area.y - diagHeight) / 2;
+
+	connBgWidget.setBounds({diagX, diagY, diagWidth, diagHeight});
+	connDtWidget.setBounds(connBgWidget.getBounds());
+}
+
+void TitleScene::showConnDialog()
+{
+	if (connDialogOpen)
+		return;
+
+	dialogAnimTimer = 0.0f;
+	lastDialogAnimTimer = 0.0f;
+	connDialogOpen = true;
+
+	connDtWidget.setTexture(&connDt1Texture);
+
+	auto area = Vec2i(Game::getFramebufferSize());
+	float windowFactor = (float(area.x * area.y) / BASE_WND_AREA);
+	renderConnDialog(area, windowFactor);
+
+	setCommonWidgetsEnabled(false);
+
+	connDialogCanvas.setVisible(true);
+}
+
+void TitleScene::closeConnDialog()
+{
+	connDialogCanvas.setVisible(false);
+
+	setCommonWidgetsEnabled(true);
+
+	connDialogOpen = false;
 }

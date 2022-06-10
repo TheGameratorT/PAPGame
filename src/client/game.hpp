@@ -11,10 +11,12 @@
 #include "input/keydefs.hpp"
 
 #include "font/truetype/truetype.hpp"
+#include "locale/unicodestring.hpp"
 
 namespace Game
 {
 	using KeyCallback = std::function<void(KeyState)>;
+	using TaskCallback = std::function<void()>;
 
 	extern mGUI::Interface gui;
 	extern bool shouldQuitGame;
@@ -24,12 +26,11 @@ namespace Game
 	extern Vec2ui framebufferSize;
 	extern Vec2d cursorPosition;
 
-	Network::ClientConnection* getConn();
-	int gotConnErr();
-
 	bool init();
 	void run();
 	void destroy();
+
+	inline void quit() { shouldQuitGame = true; }
 
 	void reload();
 
@@ -52,14 +53,12 @@ namespace Game
 	void switchScene(const ObjectProfile* profile);
 
 	template<SceneType T>
-	void switchScene()
-	{ switchScene(&T::profile); }
+	void switchScene() { switchScene(&T::profile); }
 
 	Scene* createScene(int sceneID);
 
 	template<SceneType T>
-	T* createScene()
-	{ return reinterpret_cast<T*>(createScene(Objects::idOf<T>())); }
+	T* createScene() { return reinterpret_cast<T*>(createScene(Objects::idOf<T>())); }
 
 	void setFullscreen(bool newValue);
 
@@ -70,6 +69,9 @@ namespace Game
 	void loadFont(const std::string& fontName, const Path& fontPath);
 	const TrueType::Font& getFont(const std::string& fontName);
 
-	inline void quit()
-	{ shouldQuitGame = true; }
+	void connect(const std::string& address, u16 port);
+
+	void schedule(const TaskCallback& callback, u32 delayMs);
+
+	void setPlayerName(const U8String& name);
 }

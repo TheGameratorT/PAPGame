@@ -24,7 +24,7 @@ void TextBox::render()
 	if (bounds.getHeight() == 0)
 		return;
 
-	const TrueType::Font& font = Game::getFont("pixels");
+	const TrueType::Font& font = Game::getFont(m_font);
 
 	i32 qualityMul = 1;
 
@@ -58,6 +58,16 @@ void TextBox::onKey(Key key, KeyState state)
 		return;
 	}
 
+	if (state == KeyState::Pressed)
+	{
+		if (key == KeyCode::Enter)
+		{
+			if (m_enterClickCallback)
+				m_enterClickCallback();
+			return;
+		}
+	}
+
 	if (state == KeyState::Pressed || state == KeyState::Held)
 	{
 		if (key == KeyCode::Backspace)
@@ -80,6 +90,12 @@ void TextBox::onKey(Key key, KeyState state)
 void TextBox::onKeyChar(KeyChar chr)
 {
 	if (Game::getGUI().getCtrlDown() || m_text.size() >= m_maxTextSize)
+		return;
+
+	bool allow = true;
+	if (m_charValidator)
+		allow = m_charValidator(chr);
+	if (!allow)
 		return;
 
 	m_text += Unicode::Codepoint(chr);
