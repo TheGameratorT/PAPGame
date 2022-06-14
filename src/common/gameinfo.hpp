@@ -3,5 +3,5 @@
 namespace GameInfo
 {
 	constexpr const char* handshakeMagic = "PPGM";
-	constexpr int version = 0;
+	constexpr u32 version = 0;
 }

@@ -3,6 +3,7 @@
 #include "font/truetype/truetype.hpp"
 #include "font/rasterizer.hpp"
 #include "render/font.hpp"
+#include "render/renderer.hpp"
 
 #include "game.hpp"
 
@@ -12,6 +13,39 @@ void TextBox::update()
 {
 	//Log::info("TEXT", (const char*)m_text.cStr());
 	//ArcDebug() << m_text;
+
+	if (!m_readOnly)
+	{
+		Vec2d cursorPos = Game::getCursorPosition();
+		bool isContained = getBounds().contains(cursorPos);
+		if (m_beingHovered && !isContained)
+		{
+			m_beingHovered = false;
+		}
+		else if (isContained)
+		{
+			m_beingHovered = true;
+		}
+
+		m_caretTimer += Game::getTickDuration();
+		if (m_caretTimer > 0.5f)
+		{
+			m_caretVisible = !m_caretVisible;
+			m_caretTimer = 0.0f;
+		}
+	}
+	else
+	{
+		m_beingHovered = false;
+		m_caretVisible = false;
+	}
+
+	Texture* texture;
+	if (m_hoverTexture && (m_beingHovered || Game::getGUI().isWidgetFocused(this)))
+		texture = m_hoverTexture;
+	else
+		texture = m_texture;
+	m_image.setTexture(texture);
 }
 
 void TextBox::render()
@@ -31,30 +65,60 @@ void TextBox::render()
 	i32 fontHeight = Font::getMaxGlyphHeight(font);
 	float fontScale = (float(bounds.getHeight()) / float(fontHeight)) * m_fontScale;
 
-	auto fontStr = Font::calculateFontString(font, m_text, fontScale * float(qualityMul));
+	auto fontStr = Font::calculateFontString(font, m_text, fontScale * float(qualityMul), m_caretPos);
 
 	i32 xOffset = std::lroundl(m_textSidePadding * fontScale);
+	i32 fontX = bounds.x + xOffset;
 
-	i32 yOffset = std::lroundl(-float(fontStr.glyphYMax) * fontScale);
-	yOffset += std::lroundl(float(fontHeight) * fontScale);
+	if (!m_text.empty())
+	{
+		i32 yOffset = std::lroundl(-float(fontStr.glyphYMax) * fontScale);
+		yOffset += std::lroundl((float(fontHeight) + m_textYOffset) * fontScale);
 
-	Font::renderFontString(font, m_textTexture.getGleTex2D(), fontStr);
-	m_textImage.setTexture(&m_textTexture);
-	m_textImage.setBounds({
-		bounds.x + xOffset,
-		bounds.y + yOffset,
-		i32(m_textTexture.getWidth()) / qualityMul,
-		i32(m_textTexture.getHeight()) / qualityMul
-	});
-	m_textImage.render();
-	m_textTexture.destroy();
+		Font::renderFontString(font, m_textTexture.getGleTex2D(), fontStr);
+		RectI textBounds = {
+			fontX,
+			bounds.y + yOffset,
+			i32(m_textTexture.getWidth()) / qualityMul,
+			i32(m_textTexture.getHeight()) / qualityMul
+		};
+		Renderer::renderTexture(m_textTexture, textBounds, {}, 1.0f);
+		m_textTexture.destroy();
+	}
+
+	if (m_caretVisible)
+	{
+		// TODO: Fix this math
+
+		i32 caretSize = std::lroundl(1860.0f * fontScale);
+		Texture& caretTex = Game::getGUI().getCaretTexture();
+		RectI caretBounds = {
+			fontX + fontStr.caretX - i32(std::lroundl(192.0f * fontScale)),
+			bounds.y + i32(std::lroundl(900.0f * fontScale)),
+			caretSize,
+			caretSize
+		};
+		Renderer::renderTexture(caretTex, caretBounds, {}, 1.0f);
+	}
 }
 
 void TextBox::onKey(Key key, KeyState state)
 {
+	if (m_readOnly)
+		return;
+
 	if (key >= MouseCode::Button1 && key <= MouseCode::Button8)
 	{
 		// Mouse Press
+		if (key == MouseCode::Left && state == KeyState::Pressed)
+		{
+			Vec2d cursorPos = Game::getCursorPosition();
+			bool isContained = getBounds().contains(cursorPos);
+			if (isContained)
+			{
+				Game::getGUI().setFocusedWidget(this);
+			}
+		}
 		return;
 	}
 
@@ -68,42 +132,74 @@ void TextBox::onKey(Key key, KeyState state)
 		}
 	}
 
-	if (state == KeyState::Pressed || state == KeyState::Held)
+	if (Game::getGUI().isWidgetFocused(this))
 	{
-		if (key == KeyCode::Backspace)
+		if (state == KeyState::Pressed || state == KeyState::Held)
 		{
-			if (!m_text.empty())
-				m_text.erase(m_text.size() - 1);
+			if (key == KeyCode::Backspace)
+			{
+				if (m_caretPos != 0)
+				{
+					m_text.erase(m_caretPos - 1, 1);
+					m_caretPos--;
+				}
+			}
+			else if (key == KeyCode::Left)
+			{
+				if (m_caretPos != 0)
+					m_caretPos--;
+			}
+			else if (key == KeyCode::Right)
+			{
+				if (m_caretPos != m_text.size())
+					m_caretPos++;
+			}
+		}
+
+		if (Game::getGUI().getCtrlDown() && state == KeyState::Pressed && key == KeyCode::V)
+		{
+			U8String s = Game::getClipboard();
+			SizeT ssize = s.size();
+			for (SizeT i = 0; i < ssize; i++)
+			{
+				if (m_text.size() > m_maxTextSize)
+					break;
+				putIfValid(s[i]);
+			}
 		}
 	}
-
-	/*if (Game::getGUI().getCtrlDown() && state == KeyState::Pressed && key == KeyCode::V)
-	{
-		std::string s = Game::getClipboard();
-		SizeT newSize = m_text.size() + s.size();
-		if (newSize > m_maxTextSize)
-			newSize = m_maxTextSize;
-		m_text.append(reinterpret_cast<const char32_t*>(s.c_str()), newSize);
-	}*/
 }
 
 void TextBox::onKeyChar(KeyChar chr)
 {
-	if (Game::getGUI().getCtrlDown() || m_text.size() >= m_maxTextSize)
+	if (m_readOnly || !Game::getGUI().isWidgetFocused(this) || Game::getGUI().getCtrlDown() || m_text.size() >= m_maxTextSize)
 		return;
 
+	putIfValid(Unicode::Codepoint(chr));
+}
+
+void TextBox::putIfValid(Unicode::Codepoint cp)
+{
 	bool allow = true;
 	if (m_charValidator)
-		allow = m_charValidator(chr);
+		allow = m_charValidator(cp);
 	if (!allow)
 		return;
 
-	m_text += Unicode::Codepoint(chr);
+	m_text.insert(m_caretPos, cp);
+	m_caretPos++;
 }
 
 void TextBox::setText(const U8String& text)
 {
 	m_text = text;
+	m_caretPos = 0;
+}
+
+void TextBox::clear()
+{
+	m_text.clear();
+	m_caretPos = 0;
 }
 
 mGUI_END

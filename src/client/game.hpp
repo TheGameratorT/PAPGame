@@ -48,7 +48,7 @@ namespace Game
 	[[nodiscard]] inline mGUI::Interface& getGUI() { return gui; }
 	[[nodiscard]] inline Vec2d& getCursorPosition() { return cursorPosition; }
 
-	std::string getClipboard();
+	U8String getClipboard();
 
 	void switchScene(const ObjectProfile* profile);
 
@@ -74,4 +74,5 @@ namespace Game
 	void schedule(const TaskCallback& callback, u32 delayMs);
 
 	void setPlayerName(const U8String& name);
+	const U8String& getPlayerName();
 }

@@ -6,10 +6,12 @@ mGUI_BEGIN
 
 void Interface::init()
 {
+	m_caretTexture.load("@/caret.png");
 }
 
 void Interface::destroy()
 {
+	m_caretTexture.destroy();
 }
 
 void Interface::update()
@@ -37,6 +39,11 @@ void Interface::onKey(Key key, KeyState state)
 void Interface::onKeyChar(KeyChar chr)
 {
 	m_container.onKeyChar(chr);
+}
+
+bool Interface::isWidgetFocused(Widget* widget)
+{
+	return widget == m_focusedWidget;
 }
 
 mGUI_END

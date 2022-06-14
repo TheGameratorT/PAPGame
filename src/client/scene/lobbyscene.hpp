@@ -21,4 +21,22 @@ public:
 private:
 	mGUI::Container canvas;
 
+	Texture bgTexture;
+	Texture mainPanelTexture;
+	Texture btn1nTexture;
+	Texture btn1hTexture;
+	Texture btn1cTexture;
+	Texture btn2nTexture;
+	Texture btn2hTexture;
+	Texture btn3nTexture;
+	Texture btn3hTexture;
+	Texture btn3cTexture;
+
+	mGUI::Image bgWidget;
+	mGUI::Image mainPanelWidget;
+	mGUI::Button btn1Widget;
+	mGUI::TextBox btn2Widget;
+	mGUI::Button btn3Widget;
+
+	void sendMessage();
 };

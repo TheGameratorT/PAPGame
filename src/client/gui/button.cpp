@@ -68,7 +68,10 @@ void Button::onKey(Key key, KeyState state)
 	else
 	{
 		if (state == KeyState::Pressed && isContained)
+		{
+			Game::getGUI().setFocusedWidget(this);
 			m_beingHeld = true;
+		}
 	}
 }
 

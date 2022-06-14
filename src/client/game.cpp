@@ -373,9 +373,17 @@ namespace Game
 		return timer.getElapsedTime(Time::Unit::Seconds);
 	}
 
-	std::string getClipboard()
+	U8String getClipboard()
 	{
-		return window->getClipboardString();
+		std::string str = window->getClipboardString();
+		if (str.empty())
+			return {};
+		SizeT strSize = str.size();
+		Log::info("A", str);
+		U8String out;
+		out.resizeBytes(strSize);
+		std::memcpy(out.data(), str.data(), strSize);
+		return out;
 	}
 
 	Object* createObject(const ObjectProfile* profile)
@@ -475,6 +483,11 @@ namespace Game
 		task.callback = callback;
 		task.firingTime = float(getElapsedTime() + float(delayMs) / 1000.0f);
 		scheduledTasks.push_back(std::make_unique<ScheduledTask>(task));
+	}
+
+	const U8String& getPlayerName()
+	{
+		return playerName;
 	}
 
 	void setPlayerName(const U8String& name)

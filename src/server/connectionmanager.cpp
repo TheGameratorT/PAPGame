@@ -100,8 +100,10 @@ public:
 
 		connection->sendPacket<PKT_S2C_Handshake>(GameInfo::handshakeMagic);
 
+		// TODO: Name length security check
+
 		if (m_connMgr.m_connectionListener)
-			m_connMgr.m_connectionListener(m_client);
+			m_connMgr.m_connectionListener(m_client, packet.getPlayerName());
 	}
 
 private:

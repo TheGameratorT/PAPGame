@@ -84,6 +84,8 @@ private:
 	float dialogAnimTimer = 0.0f;
 	float lastDialogAnimTimer = 0.0f;
 
+	bool isCreating = false;
+
 	bool exitDialogOpen = false;
 	bool textDialogOpen = false;
 	bool connDialogOpen = false;
@@ -107,4 +109,6 @@ private:
 	void renderConnDialog(const Vec2i& area, float windowFactor);
 	void showConnDialog();
 	void closeConnDialog();
+
+	void createServerGame();
 };

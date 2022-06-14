@@ -113,7 +113,14 @@ void TitleScene::onCreate()
 	edbYWidget.setOnClick([](){ Game::quit(); });
 	edbNWidget.setOnClick([this](){ closeExitDialog(); });
 
-	joinGameButtonWidget.setOnClick([this](){ showNicknameDialog(); });
+	createGameButtonWidget.setOnClick([this](){
+		isCreating = true;
+		showNicknameDialog();
+	});
+	joinGameButtonWidget.setOnClick([this](){
+		isCreating = false;
+		showNicknameDialog();
+	});
 
 	txtbNWidget.setOnClick([this](){ closeTextDialog(); });
 
@@ -159,8 +166,10 @@ void TitleScene::onUpdate()
 	if (switchingScene)
 	{
 		if (Fader::hasFadingFinished())
+		{
 			destroy();
-		return;
+			return;
+		}
 	}
 
 	if (exitDialogOpen || textDialogOpen || connDialogOpen)
@@ -423,7 +432,8 @@ void TitleScene::showTextDialog()
 	lastDialogAnimTimer = 0.0f;
 	textDialogOpen = true;
 
-	txtTbWidget.setText(u8"");
+	txtTbWidget.clear();
+	Game::getGUI().setFocusedWidget(&txtTbWidget);
 
 	auto area = Vec2i(Game::getFramebufferSize());
 	float windowFactor = (float(area.x * area.y) / BASE_WND_AREA);
@@ -447,11 +457,11 @@ void TitleScene::showNicknameDialog()
 {
 	txtDtWidget.setTexture(&nndDtTexture);
 
-	txtTbWidget.setFont("pixels");
+	txtTbWidget.setFont("smooth");
 	txtTbWidget.setFontScale(0.70f);
 	txtTbWidget.setTextSidePadding(768.0f);
 	txtTbWidget.setMaxCharacters(16);
-	txtTbWidget.setCharValidator([](KeyChar chr){ return true; });
+	txtTbWidget.setCharValidator([](Unicode::Codepoint chr){ return true; });
 
 	auto onClick = [this](){
 		const U8String& txt = txtTbWidget.getText();
@@ -459,7 +469,10 @@ void TitleScene::showNicknameDialog()
 		{
 			Game::setPlayerName(txt);
 			closeTextDialog();
-			showIPDialog();
+			if (isCreating)
+				createServerGame();
+			else
+				showIPDialog();
 		}
 	};
 
@@ -473,11 +486,11 @@ void TitleScene::showIPDialog()
 {
 	txtDtWidget.setTexture(&ipdDtTexture);
 
-	txtTbWidget.setFont("smooth");
+	txtTbWidget.setFont("arial");
 	txtTbWidget.setFontScale(0.70f);
 	txtTbWidget.setTextSidePadding(768.0f);
 	txtTbWidget.setMaxCharacters(21);
-	txtTbWidget.setCharValidator([](KeyChar chr){
+	txtTbWidget.setCharValidator([](Unicode::Codepoint chr){
 		return (chr >= 48 && chr <= 58) || chr == 46;
 	});
 
@@ -566,4 +579,10 @@ void TitleScene::closeConnDialog()
 	setCommonWidgetsEnabled(true);
 
 	connDialogOpen = false;
+}
+
+void TitleScene::createServerGame()
+{
+	std::system("start papgame_server");
+	Game::connect("127.0.0.1", 25565);
 }

@@ -49,7 +49,7 @@ private:
 class ConnectionManager
 {
 public:
-	using ConnectionListener = std::function<void(const ConnectedClientHandle&)>;
+	using ConnectionListener = std::function<void(const ConnectedClientHandle&, const U8String&)>;
 	using DisconnectionListener = std::function<void(const ConnectedClientHandle&)>;
 
 	ConnectionManager();

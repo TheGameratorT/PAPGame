@@ -16,6 +16,13 @@
 
 static std::vector<std::unique_ptr<NetPlayer>> m_players;
 
+static std::string utf8_to_str(const U8String& str)
+{
+	std::string out;
+	out = reinterpret_cast<const char*>(str.data());
+	return out;
+}
+
 u32 arcMain(const std::vector<std::string>& args)
 {
 	using namespace std::chrono_literals;
@@ -25,7 +32,7 @@ u32 arcMain(const std::vector<std::string>& args)
 	Path::setCurrentWorkingDirectory(Path::getApplicationDirectory());
 
 	auto* window = new Window();
-	if (!window->create(640, 480, "PAP Game - Server"))
+	if (!window->create(640, 480, "Hypestayo - Server"))
 	{
 		Log::error("App", "Failed to create window.");
 		return 1;
@@ -40,20 +47,27 @@ u32 arcMain(const std::vector<std::string>& args)
 	auto* guiWindow = new GUI::Window();
 	guiWindow->create("Connected Clients");
 
+	auto* chatWindow = new GUI::Window();
+	chatWindow->create("Game Chat");
+
 	try
 	{
 		ConnectionManager connMgr;
 		connMgr.startServer(25565);
 
-		connMgr.setConnectionListener([guiWindow](const ConnectedClientHandle& handle){
+		connMgr.setConnectionListener([guiWindow](const ConnectedClientHandle& handle, const U8String& playerName){
 			Network::ConnectedClientPtr connection = handle.getConnection();
+
+			ArcDebug() << playerName;
 
 			auto* netPlayer = new NetPlayer();
 			m_players.emplace_back(netPlayer);
 
 			netPlayer->m_connHandle = &handle;
 			netPlayer->m_guiLabel = std::make_unique<GUI::Label>();
-			netPlayer->m_guiLabel->create(std::to_string(handle.getID()) + ": " + connection->getAddress());
+			netPlayer->m_guiLabel->create(
+				String::format("%d: %s | %s", handle.getID(), connection->getAddress(), utf8_to_str(playerName))
+			);
 			netPlayer->m_guiLabelHandle = guiWindow->addControl(*netPlayer->m_guiLabel);
 
 			Log::info("Server", "Got connection from address: " + connection->getAddress());
@@ -83,6 +97,7 @@ u32 arcMain(const std::vector<std::string>& args)
 
 			GUI::prepareRender();
 			guiWindow->update();
+			chatWindow->update();
 			GUI::render();
 
 			window->swapBuffers();

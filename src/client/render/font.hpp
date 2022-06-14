@@ -1,6 +1,6 @@
 #pragma once
 
-// By Ed_IT
+// Originally by Ed_IT
 
 #include "math/vector.hpp"
 #include "render/gle/texture2d.hpp"
@@ -15,18 +15,20 @@ struct FontString
 	Vec2i canvasSize;
 	i32 glyphYMax, glyphYMin;
 	float fontScale;
+	i32 caretX;
 };
 
 namespace Font {
 
 template<class String>
-FontString<String> calculateFontString(const TrueType::Font& msgFont, const String& string, float fontScale = 1.0f)
+FontString<String> calculateFontString(const TrueType::Font& msgFont, const String& string, float fontScale = 1.0f, u32 caretIndex = 0)
 requires(TT::IsAnyOf<String, std::string, std::wstring, U8String, U16String, U32String>)
 {
 	Vec2i size;
 	Vec2i caret;
 	i32 glyphYMin = INT32_MAX;
 	i32 glyphYMax = INT32_MIN;
+	i32 caretX = 0.0f;
 
 	for (SizeT i = 0; i < string.size(); i++) {
 
@@ -49,6 +51,8 @@ requires(TT::IsAnyOf<String, std::string, std::wstring, U8String, U16String, U32
 		auto& glyph = msgFont.glyphs[glyphIndex];
 
 		caret.x += Math::round(glyph.advance * fontScale);
+		if (i < caretIndex)
+			caretX = caret.x;
 		glyphYMin = Math::min(glyphYMin, glyph.yMin);
 		glyphYMax = Math::max(glyphYMax, glyph.yMax);
 
@@ -59,7 +63,7 @@ requires(TT::IsAnyOf<String, std::string, std::wstring, U8String, U16String, U32
 	size.x = Math::max(size.x, caret.x);
 	size.y = (caret.y + 1) * Math::round(glyphHeight * fontScale);
 
-	return { string, size, glyphYMax, glyphYMin, fontScale };
+	return { string, size, glyphYMax, glyphYMin, fontScale, caretX };
 }
 
 template<class String>

@@ -50,7 +50,7 @@ void ClientConnection::connect(const std::string& host, u16 port)
 			if (!error)
 			{
 				m_connected = true;
-				m_readPkt = EncodedPacket::createReader(512); // TODO: PLACE THIS SOMEWHERE CONVENIENT
+				m_readPkt = EncodedPacket::createReader(65536); // TODO: PLACE THIS SOMEWHERE CONVENIENT
 
 				if (m_connectHandler)
 					m_connectHandler();

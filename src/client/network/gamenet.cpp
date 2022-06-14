@@ -1,5 +1,7 @@
 #include "gamenet.hpp"
 
+#include "game.hpp"
+
 #include "network/clientconnection.hpp"
 #include "network/packettable.hpp"
 #include "network/packet/pkt_s2c_handshake.hpp"
@@ -124,7 +126,7 @@ namespace GameNet
 		});
 
 		// Queue a packet to send after connected
-		connection->sendPacket<PKT_C2S_Handshake>(GameInfo::handshakeMagic, GameInfo::version);
+		connection->sendPacket<PKT_C2S_Handshake>(GameInfo::handshakeMagic, GameInfo::version, Game::getPlayerName());
 	}
 
 	void disconnect()
