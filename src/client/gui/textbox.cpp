@@ -68,17 +68,17 @@ void TextBox::render()
 	auto fontStr = Font::calculateFontString(font, m_text, fontScale * float(qualityMul), m_caretPos);
 
 	i32 xOffset = std::lroundl(m_textSidePadding * fontScale);
+	i32 yOffset = std::lroundl((float(fontHeight) + m_textYOffset) * fontScale);
 	i32 fontX = bounds.x + xOffset;
 
 	if (!m_text.empty())
 	{
-		i32 yOffset = std::lroundl(-float(fontStr.glyphYMax) * fontScale);
-		yOffset += std::lroundl((float(fontHeight) + m_textYOffset) * fontScale);
+		i32 fontY = bounds.y + yOffset + std::lroundl(-float(fontStr.glyphYMax) * fontScale);
 
 		Font::renderFontString(font, m_textTexture.getGleTex2D(), fontStr);
 		RectI textBounds = {
 			fontX,
-			bounds.y + yOffset,
+			fontY,
 			i32(m_textTexture.getWidth()) / qualityMul,
 			i32(m_textTexture.getHeight()) / qualityMul
 		};
@@ -86,15 +86,13 @@ void TextBox::render()
 		m_textTexture.destroy();
 	}
 
-	if (m_caretVisible)
+	if (m_caretVisible && Game::getGUI().isWidgetFocused(this))
 	{
-		// TODO: Fix this math
-
 		i32 caretSize = std::lroundl(1860.0f * fontScale);
 		Texture& caretTex = Game::getGUI().getCaretTexture();
 		RectI caretBounds = {
 			fontX + fontStr.caretX - i32(std::lroundl(192.0f * fontScale)),
-			bounds.y + i32(std::lroundl(900.0f * fontScale)),
+			bounds.y + yOffset - i32(std::lroundl(1600.0f * fontScale)),
 			caretSize,
 			caretSize
 		};
