@@ -1,7 +1,5 @@
 #include "pkt_c2s_handshake.hpp"
 
-#include "debug.hpp"
-
 IMPL_PACKET(PKT_C2S_Handshake)
 
 PKT_C2S_Handshake::PKT_C2S_Handshake(std::string magic, u32 gameVersion, U8String playerName) :

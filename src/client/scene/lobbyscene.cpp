@@ -1,6 +1,8 @@
 #include "lobbyscene.hpp"
 
 #include "game.hpp"
+#include "network/gamenet.hpp"
+#include "network/packet/pkt_c2s_lobbymsg.hpp"
 
 constexpr u32 TICK_RATE = 30;
 constexpr float TICK_DURATION = 1.0f / TICK_RATE;
@@ -17,6 +19,11 @@ constexpr Vec2i BTN3_IMG_SIZE = { 48, 48 };
 constexpr float BTN3_IMG_ARATIO = float(BTN3_IMG_SIZE.x) / float(BTN3_IMG_SIZE.y);
 
 IMPL_OBJECT(LobbyScene)
+
+struct RenderableMessage
+{
+	U8String msg;
+};
 
 void LobbyScene::onCreate()
 {
@@ -44,7 +51,7 @@ void LobbyScene::onCreate()
 	btn3Widget.setHoverTexture(&btn3hTexture);
 	btn3Widget.setHeldTexture(&btn3cTexture);
 
-	auto sendMsgLamda = [this](){ sendMessage(); };
+	auto sendMsgLambda = [this](){ sendMessage(); };
 
 	btn2Widget.setFont("smooth");
 	btn2Widget.setFontScale(0.35f);
@@ -52,8 +59,14 @@ void LobbyScene::onCreate()
 	btn2Widget.setTextYOffset(1600.0f);
 	btn2Widget.setMaxCharacters(24);
 
-	btn2Widget.setOnEnter(sendMsgLamda);
-	btn3Widget.setOnClick(sendMsgLamda);
+	btn2Widget.setOnEnter(sendMsgLambda);
+	btn3Widget.setOnClick(sendMsgLambda);
+
+	playersTextWidget.setText(u8"Players");
+	playersTextWidget.setFont("smooth");
+
+	lobbyChatTextWidget.setText(u8"Lobby Chat");
+	lobbyChatTextWidget.setFont("smooth");
 
 	bgWidget.setZIndex(0);
 
@@ -62,6 +75,8 @@ void LobbyScene::onCreate()
 	canvas.addWidget(btn1Widget);
 	canvas.addWidget(btn2Widget);
 	canvas.addWidget(btn3Widget);
+	canvas.addWidget(playersTextWidget);
+	canvas.addWidget(lobbyChatTextWidget);
 	canvas.setZIndex(0);
 
 	Game::getGUI().getContainer().addWidget(canvas);
@@ -93,7 +108,7 @@ void LobbyScene::onRender()
 
 	mainPanelWidget.setBounds({
 		panelWidgetX,
-		i32(50.0f * mainPanelSizeMul),
+		std::lroundl(50.0f * mainPanelSizeMul),
 		mainPanelWidth,
 		mainPanelHeight
 	});
@@ -106,7 +121,7 @@ void LobbyScene::onRender()
 
 	btn1Widget.setBounds({
 		panelWidgetX,
-		i32(322.0f * mainPanelSizeMul),
+		std::lroundl(322.0f * mainPanelSizeMul),
 		btn1Width,
 		btn1Height
 	});
@@ -118,8 +133,8 @@ void LobbyScene::onRender()
 	i32 btn2Height = std::lroundl(1.0f / BTN2_IMG_ARATIO * float(btn2Size));
 
 	btn2Widget.setBounds({
-		panelWidgetX + i32(239.0f * mainPanelSizeMul),
-		i32(322.0f * mainPanelSizeMul),
+		panelWidgetX + std::lroundl(239.0f * mainPanelSizeMul),
+		std::lroundl(322.0f * mainPanelSizeMul),
 		btn2Width,
 		btn2Height
 	});
@@ -131,10 +146,28 @@ void LobbyScene::onRender()
 	i32 btn3Height = std::lroundl(1.0f / BTN3_IMG_ARATIO * float(btn3Size));
 
 	btn3Widget.setBounds({
-		panelWidgetX + i32(501.0f * mainPanelSizeMul),
-		i32(322.0f * mainPanelSizeMul),
+		panelWidgetX + std::lroundl(501.0f * mainPanelSizeMul),
+		std::lroundl(322.0f * mainPanelSizeMul),
 		btn3Width,
 		btn3Height
+	});
+
+	// PLAYERS TEXT
+
+	i32 textBaseHeight = std::lroundl(57.0f * mainPanelSizeMul);
+
+	playersTextWidget.setBounds({
+		panelWidgetX + std::lroundl(70.0f * mainPanelSizeMul),
+		textBaseHeight,
+		std::lroundl(77.0f * mainPanelSizeMul),
+		std::lroundl(23.0f * mainPanelSizeMul)
+	});
+
+	lobbyChatTextWidget.setBounds({
+		panelWidgetX + std::lroundl(336.0f * mainPanelSizeMul),
+		textBaseHeight,
+		std::lroundl(120.0f * mainPanelSizeMul),
+		std::lroundl(23.0f * mainPanelSizeMul)
 	});
 }
 
@@ -153,5 +186,6 @@ void LobbyScene::onDestroyRequest()
 
 void LobbyScene::sendMessage()
 {
+	GameNet::getConnection()->sendPacket<PKT_C2S_LobbyMsg>(btn2Widget.getText());
 	btn2Widget.clear();
 }

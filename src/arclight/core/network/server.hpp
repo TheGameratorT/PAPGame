@@ -26,6 +26,8 @@ public:
 	void waitUntilStopped();
 	void onStopped();
 
+	[[nodiscard]] constexpr bool hasStopped() const { return m_stopped; }
+
 	inline void setConnectionListener(const ConnectionListener& connectionListener)
 	{ m_connectionListener = connectionListener; }
 
@@ -36,6 +38,7 @@ private:
 	private_t* p;
 
 	bool m_active;
+	bool m_stopped;
 	std::thread m_io_thread;
 	std::vector<ConnectedClientPtr> m_connectedClients;
 

@@ -38,5 +38,8 @@ private:
 	mGUI::TextBox btn2Widget;
 	mGUI::Button btn3Widget;
 
+	mGUI::TextBox playersTextWidget;
+	mGUI::TextBox lobbyChatTextWidget;
+
 	void sendMessage();
 };

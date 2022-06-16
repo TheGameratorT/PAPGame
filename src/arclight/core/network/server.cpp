@@ -24,6 +24,7 @@ struct Server::private_t
 Server::Server() :
 	p(nullptr),
 	m_active(false),
+	m_stopped(true),
 	m_connectionListener(nullptr)
 {}
 
@@ -48,6 +49,7 @@ void Server::start(u16 port)
 	p->acceptor = std::make_unique<tcp::acceptor>(p->io_context, tcp::endpoint(tcp::v4(), port));
 
 	m_active = true;
+	m_stopped = false;
 
 	acceptIncomingConnections();
 
@@ -82,6 +84,7 @@ void Server::onStopped()
 	p->acceptor->close();
 	p->socket->close();
 	delete p;
+	m_stopped = true;
 }
 
 void Server::acceptIncomingConnections()
