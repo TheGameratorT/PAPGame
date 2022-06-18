@@ -12,7 +12,7 @@ PacketBuffer::PacketBuffer(std::vector<char> data) :
 {}
 
 void PacketBuffer::reserve(SizeT size)
-{ m_data.reserve(size); }
+{ m_data.reserve(m_data.size() + size); }
 
 void PacketBuffer::expand(SizeT size)
 { m_data.resize(m_data.size() + size); }

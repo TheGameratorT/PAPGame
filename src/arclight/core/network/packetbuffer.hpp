@@ -1,10 +1,9 @@
 #pragma once
 
-// TODO: Support for UTF16 and UTF32 endianness conversion (low priority)
-
 #include "types.hpp"
 #include "common.hpp"
 #include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "locale/unicodestring.hpp"
 
 #include "util/bits.hpp"
@@ -61,13 +60,24 @@ public:
 	template<Unicode::Encoding T>
 	UnicodeString<T> readUtfString()
 	{
-		char* cur = &m_data[m_cursor];
-		SizeT strSize = readLE<u32>(cur);
-		cur += sizeof(u32);
+		SizeT strSize = read<u32>();
 		UnicodeString<T> out;
-		out.resizeBytes(strSize);
-		std::memcpy(out.data(), cur, strSize);
-		m_cursor += sizeof(u32) + strSize;
+		if constexpr (Unicode::isUTF8<T>())
+		{
+			std::basic_string<char8_t> strData(strSize, 0);
+			std::memcpy(strData.data(), &m_data[m_cursor], strSize);
+			out.assign(strData);
+			m_cursor += strSize;
+		}
+		else
+		{
+			using U = TT::Conditional<Unicode::isUTF16<T>(), char16_t, char32_t>;
+			SizeT strDataSize = strSize / sizeof(U);
+			std::basic_string<U> strData(strDataSize, 0);
+			for (SizeT i = 0; i < strDataSize; i++)
+				strData[i] = read<U>();
+			out.assign(strData);
+		}
 		return out;
 	}
 
@@ -76,11 +86,27 @@ public:
 	{
 		SizeT strSize = str.rawSize();
 		SizeT writeSize = sizeof(u32) + strSize;
-		expand(writeSize);
-		writeLE(&m_data[m_cursor], u32(strSize));
+		reserve(writeSize); // pre-allocate
+
+		write(u32(strSize));
+		expand(strSize);
+
 		const auto* strData = str.data();
-		std::memcpy(&m_data[m_cursor + sizeof(u32)], strData, strSize);
-		m_cursor += writeSize;
+		if constexpr (Unicode::isUTF8<T>())
+		{
+			std::memcpy(&m_data[m_cursor], strData, strSize);
+		}
+		else
+		{
+			using U = TT::Conditional<Unicode::isUTF16<T>(), char16_t, char32_t>;
+			SizeT strDataLESize = strSize / sizeof(U);
+			std::basic_string<U> strDataLE(strDataLESize, 0);
+			std::memcpy(strDataLE.data(), strData, strSize);
+			for (SizeT i = 0; i < strDataLESize; i++)
+				strDataLE[i] = Bits::little(strDataLE[i]);
+			std::memcpy(&m_data[m_cursor], strDataLE.data(), strSize);
+		}
+		m_cursor += strSize;
 	}
 
 	inline U8String readU8String() { return readUtfString<Unicode::UTF8>(); }
