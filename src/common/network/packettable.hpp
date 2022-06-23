@@ -4,13 +4,20 @@
 
 #define PacketTable_DEFINE_ID(name, id) if (std::is_same_v<name, T>) return id;
 
+#define PKT_CALL(type, func) func(static_cast<const type&>(packet))
+#define PKT_C2S_JUMP(type, func) case PacketTable::idOfC2S<type>(): PKT_CALL(type, func); break
+#define PKT_S2C_JUMP(type, func) case PacketTable::idOfS2C<type>(): PKT_CALL(type, func); break
+
 class PKT_C2S_Handshake;
 class PKT_C2S_LobbyMsg;
+class PKT_C2S_PlayerReady;
 
 class PKT_S2C_Handshake;
 class PKT_S2C_Disconnect;
 class PKT_S2C_LobbyData;
 class PKT_S2C_LobbyMsg;
+class PKT_S2C_PlayerState;
+class PKT_S2C_StartGame;
 
 namespace PacketTable
 {
@@ -22,6 +29,7 @@ namespace PacketTable
 	{
 		PacketTable_DEFINE_ID(PKT_C2S_Handshake, 0)
 		PacketTable_DEFINE_ID(PKT_C2S_LobbyMsg, 1)
+		PacketTable_DEFINE_ID(PKT_C2S_PlayerReady, 2)
 		return -1;
 	}
 
@@ -32,6 +40,8 @@ namespace PacketTable
 		PacketTable_DEFINE_ID(PKT_S2C_Disconnect, 1)
 		PacketTable_DEFINE_ID(PKT_S2C_LobbyData, 2)
 		PacketTable_DEFINE_ID(PKT_S2C_LobbyMsg, 3)
+		PacketTable_DEFINE_ID(PKT_S2C_PlayerState, 4)
+		PacketTable_DEFINE_ID(PKT_S2C_StartGame, 5)
 		return -1;
 	}
 }

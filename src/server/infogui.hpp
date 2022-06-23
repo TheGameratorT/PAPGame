@@ -2,6 +2,7 @@
 
 #include "window/window.hpp"
 #include "render/gui/imgui/window.hpp"
+#include "render/gui/imgui/inputtext.hpp"
 
 class InfoGUI
 {
@@ -18,4 +19,9 @@ private:
 	Window* m_window = nullptr;
 	GUI::Window m_conClientsWnd;
 	GUI::Window m_lobbyChatWnd;
+	GUI::Window m_miscWnd;
+	GUI::InputText m_inputText;
+
+	void drawPlayerNames();
+	void drawLobbyChat();
 };

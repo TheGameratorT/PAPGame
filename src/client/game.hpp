@@ -13,6 +13,9 @@
 #include "font/truetype/truetype.hpp"
 #include "locale/unicodestring.hpp"
 
+class Player;
+class PlayerInfo;
+
 namespace Game
 {
 	using KeyCallback = std::function<void(KeyState)>;
@@ -75,4 +78,18 @@ namespace Game
 
 	void setPlayerName(const U8String& name);
 	const U8String& getPlayerName();
+
+	u32 getPlayerID();
+	void setPlayerID(u32 playerID);
+
+	Player* getPlayer();
+	void setPlayer(Player* varPlayer);
+
+	Player* createPlayer(const PlayerInfo& info);
+	void removePlayer(u32 playerID);
+
+	std::vector<std::unique_ptr<Player>>& getPlayers();
+	Player* getPlayerByID(u32 varPlayerID);
+
+	std::vector<U8String>& getLobbyMsgs();
 }

@@ -98,6 +98,10 @@ void Acceptor::start(u16 port)
 				return;
 			}
 
+			// TODO: Check for conflicting nicknames
+
+			// TODO: Limit max of 8 players
+
 			if (m_clientAcceptedCallback)
 				m_clientAcceptedCallback(std::make_unique<Player>(other, playerName));
 		});

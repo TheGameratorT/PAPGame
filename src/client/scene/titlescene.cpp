@@ -38,9 +38,9 @@ void TitleScene::onCreate()
 	buttonHoverTexture.load("@/title/button_hover.png", GLE::TextureFilter::None);
 	createGameTextTexture.load("@/title/creategame.png");
 	joinGameTextTexture.load("@/title/joingame.png");
-	exitTexture.load("@/title/exit.png", GLE::TextureFilter::None);
+	exitTexture.load("@/exit.png", GLE::TextureFilter::None);
 	aboutTexture.load("@/title/about.png", GLE::TextureFilter::None);
-	settingsTexture.load("@/title/settings.png", GLE::TextureFilter::None);
+	settingsTexture.load("@/settings.png", GLE::TextureFilter::None);
 	edBgTexture.load("@/title/exit_dialog_bg.png", GLE::TextureFilter::None);
 	edDtTexture.load("@/title/exit_dialog_text.png");
 	edb1Texture.load("@/title/edb1.png", GLE::TextureFilter::None);
@@ -172,7 +172,7 @@ void TitleScene::onUpdate()
 		}
 	}
 
-	if (exitDialogOpen || textDialogOpen || connDialogOpen)
+	if (isDialogOpen())
 	{
 		lastDialogAnimTimer = dialogAnimTimer;
 		if (dialogAnimTimer < 1.0f)
@@ -348,8 +348,7 @@ void TitleScene::showExitDialog()
 	if (exitDialogOpen)
 		return;
 
-	dialogAnimTimer = 0.0f;
-	lastDialogAnimTimer = 0.0f;
+	resetDialogAnim();
 	exitDialogOpen = true;
 
 	auto area = Vec2i(Game::getFramebufferSize());
@@ -427,9 +426,6 @@ void TitleScene::showTextDialog()
 {
 	if (textDialogOpen)
 		return;
-
-	dialogAnimTimer = 0.0f;
-	lastDialogAnimTimer = 0.0f;
 	textDialogOpen = true;
 
 	txtTbWidget.clear();
@@ -479,6 +475,7 @@ void TitleScene::showNicknameDialog()
 	txtbYWidget.setOnClick(onClick);
 	txtTbWidget.setOnEnter(onClick);
 
+	resetDialogAnim();
 	showTextDialog();
 }
 
@@ -556,9 +553,6 @@ void TitleScene::showConnDialog()
 {
 	if (connDialogOpen)
 		return;
-
-	dialogAnimTimer = 0.0f;
-	lastDialogAnimTimer = 0.0f;
 	connDialogOpen = true;
 
 	connDtWidget.setTexture(&connDt1Texture);
@@ -579,6 +573,17 @@ void TitleScene::closeConnDialog()
 	setCommonWidgetsEnabled(true);
 
 	connDialogOpen = false;
+}
+
+void TitleScene::resetDialogAnim()
+{
+	dialogAnimTimer = 0.0f;
+	lastDialogAnimTimer = 0.0f;
+}
+
+bool TitleScene::isDialogOpen() const
+{
+	return exitDialogOpen || textDialogOpen || connDialogOpen;
 }
 
 void TitleScene::createServerGame()

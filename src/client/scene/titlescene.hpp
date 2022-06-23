@@ -110,5 +110,8 @@ private:
 	void showConnDialog();
 	void closeConnDialog();
 
-	void createServerGame();
+	void resetDialogAnim();
+	[[nodiscard]] bool isDialogOpen() const;
+
+	static void createServerGame();
 };

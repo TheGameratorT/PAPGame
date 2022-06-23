@@ -29,3 +29,8 @@ void Scene::onConnectionLost()
 {
 
 }
+
+void Scene::onPacketReceived(Network::PacketID id, const Network::Packet& packet)
+{
+
+}

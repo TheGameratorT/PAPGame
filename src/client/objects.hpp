@@ -6,6 +6,7 @@ class ObjectProfile;
 class SplashScene;
 class TitleScene;
 class LobbyScene;
+class MGTypeWriteScene;
 
 #define OBJECTS_DEFINE_ID(name, id) if (std::is_same_v<name, T>) return id;
 
@@ -22,6 +23,7 @@ namespace Objects
 		OBJECTS_DEFINE_ID(SplashScene, 0)
 		OBJECTS_DEFINE_ID(TitleScene, 1)
 		OBJECTS_DEFINE_ID(LobbyScene, 2)
+		OBJECTS_DEFINE_ID(MGTypeWriteScene, 3)
 		return -1;
 	}
 }

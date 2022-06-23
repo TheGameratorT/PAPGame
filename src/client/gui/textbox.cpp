@@ -156,13 +156,13 @@ void TextBox::onKey(Key key, KeyState state)
 
 		if (Game::getGUI().getCtrlDown() && state == KeyState::Pressed && key == KeyCode::V)
 		{
-			U8String s = Game::getClipboard();
-			SizeT ssize = s.size();
-			for (SizeT i = 0; i < ssize; i++)
+			U8String str = Game::getClipboard();
+			SizeT strSize = str.size();
+			for (SizeT i = 0; i < strSize; i++)
 			{
-				if (m_text.size() > m_maxTextSize)
+				if (m_text.size() >= m_maxTextSize)
 					break;
-				putIfValid(s[i]);
+				putIfValid(str[i]);
 			}
 		}
 	}

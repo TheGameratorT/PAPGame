@@ -4,31 +4,37 @@
 
 #include "network/clientconnection.hpp"
 #include "network/packettable.hpp"
-#include "network/packet/pkt_s2c_handshake.hpp"
 #include "network/packet/pkt_c2s_handshake.hpp"
+#include "network/packet/pkt_s2c_handshake.hpp"
+#include "network/packet/pkt_s2c_lobbydata.hpp"
+#include "network/packet/pkt_s2c_lobbymsg.hpp"
+#include "network/packet/pkt_s2c_playerstate.hpp"
 #include "gameinfo.hpp"
 #include "util/log.hpp"
 
-using namespace Network;
+#include "player.hpp"
 
-#define PKT_LSTNR_JUMP(id, type, func) case id: func(static_cast<const type&>(packet)); break
+using namespace Network;
 
 class PacketListener
 {
 public:
 	void operator()(PacketID id, const Packet& packet)
 	{
-		if (!GameNet::getHandshakeDone() && id != 0)
+		if (!GameNet::getHandshakeDone() && id != PacketTable::idOfS2C<PKT_S2C_Handshake>())
 		{
 			Log::error("GameNet", std::string("Server tried to send packet before handshaking."));
 			GameNet::disconnect();
 			return;
 		}
 
-		switch(id)
+		if (id == PacketTable::idOfS2C<PKT_S2C_Handshake>())
 		{
-		PKT_LSTNR_JUMP(0, PKT_S2C_Handshake, onHandshake);
+			PKT_CALL(PKT_S2C_Handshake, onHandshake);
+			return;
 		}
+
+		GameNet::onPacketReceived(id, packet);
 	}
 
 	void onHandshake(const PKT_S2C_Handshake& packet)
@@ -52,6 +58,8 @@ namespace GameNet
 	PacketListener pktListener;
 	ConnectCallback connectCallback;
 	bool handshakeDone = false;
+	bool varIsConnected = false;
+	std::string serverAddress;
 
 	void init()
 	{
@@ -111,6 +119,8 @@ namespace GameNet
 	{
 		Log::info("GameNetwork", "Attempting to connect to: " + address + ":" + std::to_string(port));
 
+		serverAddress = address;
+
 		handshakeDone = false;
 		connection->clearOutgoingPacketQueue();
 		connection->connect(address, port);
@@ -135,11 +145,23 @@ namespace GameNet
 		// TODO: perhaps clear packet queue as well?
 	}
 
+	bool isConnected()
+	{
+		return varIsConnected;
+	}
+
+	const std::string& getServerAddress()
+	{
+		return serverAddress;
+	}
+
 	void acceptConnection()
 	{
 		handshakeDone = true;
+		varIsConnected = true;
 
 		connection->setDisconnectHandler([](){
+			varIsConnected = false;
 			Log::info("GameNetwork", "Disconnected from the server.");
 		});
 
@@ -154,5 +176,83 @@ namespace GameNet
 	bool getHandshakeDone()
 	{
 		return handshakeDone;
+	}
+
+	void onPacketReceived(Network::PacketID id, const Network::Packet& packet)
+	{
+		switch (id)
+		{
+		PKT_S2C_JUMP(PKT_S2C_LobbyData, onLobbyData);
+		PKT_S2C_JUMP(PKT_S2C_LobbyMsg, onLobbyMsg);
+		PKT_S2C_JUMP(PKT_S2C_PlayerState, onPlayerState);
+		}
+	}
+
+	void onLobbyData(const PKT_S2C_LobbyData& packet)
+	{
+		u32 playerID = packet.getPlayerID();
+		Game::setPlayerID(playerID);
+
+		Game::getPlayers().clear();
+
+		Player* localPlayer = nullptr;
+		for (const auto &player : packet.getPlayers())
+		{
+			Player* newPlayer = Game::createPlayer(*player);
+			if (newPlayer->getID() == playerID)
+				localPlayer = newPlayer;
+		}
+
+		if (!localPlayer)
+		{
+			Log::error("GameNet", "The server did not send the local player information!");
+			connection->close();
+			return;
+		}
+		Game::setPlayer(localPlayer);
+
+		auto& lobbyMsgs = Game::getLobbyMsgs();
+		lobbyMsgs.clear();
+		auto& newLobbyMsgs = packet.getChatHistory();
+		lobbyMsgs.insert(lobbyMsgs.end(), newLobbyMsgs.begin(), newLobbyMsgs.end());
+	}
+
+	void onLobbyMsg(const PKT_S2C_LobbyMsg& packet)
+	{
+		Game::getLobbyMsgs().push_back(packet.getMsg());
+	}
+
+	void onPlayerState(const PKT_S2C_PlayerState& packet)
+	{
+		using PState = PKT_S2C_PlayerState;
+
+		PState::State state = packet.getState();
+
+		if (state == PState::Join)
+		{
+			const PlayerInfo& playerInfo = packet.getPlayerInfo();
+			Game::createPlayer(playerInfo);
+			return;
+		}
+
+		u32 playerID = packet.getPlayerID();
+		Player* player = Game::getPlayerByID(playerID);
+		if (!player)
+		{
+			Log::info("GameNet", "Tried to change state of non-existing player.");
+			return;
+		}
+
+		if (state == PState::Leave)
+		{
+			Game::removePlayer(playerID);
+			return;
+		}
+
+		if (state == PState::Ready)
+		{
+			player->setReady(packet.getReady());
+			return;
+		}
 	}
 }

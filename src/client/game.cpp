@@ -4,13 +4,13 @@
 #include <memory>
 #include <utility>
 
-#include "gameinfo.hpp"
-
 #include "render/gle/gle.hpp"
 
 #include "image/imageio.hpp"
 #include "input/inputsystem.hpp"
 
+#include "playerinfo.hpp"
+#include "player.hpp"
 #include "configfile.hpp"
 #include "objects.hpp"
 #include "scene/splashscene.hpp"
@@ -75,6 +75,11 @@ namespace Game
 	std::vector<std::unique_ptr<KeyHandle_impl>> keyHandles;
 	std::unordered_map<std::string, std::unique_ptr<TrueType::Font>> loadedFonts;
 	std::vector<std::unique_ptr<ScheduledTask>> scheduledTasks;
+
+	u32 playerID;
+	Player* localPlayer;
+	std::vector<std::unique_ptr<Player>> players;
+	std::vector<U8String> lobbyMsgs;
 
 	U8String playerName;
 
@@ -379,10 +384,10 @@ namespace Game
 		if (str.empty())
 			return {};
 		SizeT strSize = str.size();
-		Log::info("A", str);
+		std::basic_string<char8_t> strData(strSize, 0);
+		std::memcpy(strData.data(), str.data(), strSize);
 		U8String out;
-		out.resizeBytes(strSize);
-		std::memcpy(out.data(), str.data(), strSize);
+		out.assign(strData);
 		return out;
 	}
 
@@ -485,13 +490,55 @@ namespace Game
 		scheduledTasks.push_back(std::make_unique<ScheduledTask>(task));
 	}
 
-	const U8String& getPlayerName()
+	const U8String& getPlayerName() { return playerName; }
+	void setPlayerName(const U8String& name) { playerName = name; }
+
+	u32 getPlayerID() { return playerID; }
+	void setPlayerID(u32 newPlayerID) { playerID = newPlayerID; }
+
+	Player* getPlayer() { return localPlayer; }
+	void setPlayer(Player* varPlayer) { localPlayer = varPlayer; }
+
+	Player* createPlayer(const PlayerInfo& info)
 	{
-		return playerName;
+		auto* playerPtr = new Player(info);
+		auto player = std::unique_ptr<Player>(playerPtr);
+		player->onConnect();
+		players.push_back(std::move(player));
+		return playerPtr;
 	}
 
-	void setPlayerName(const U8String& name)
+	void removePlayer(u32 varPlayerID)
 	{
-		playerName = name;
+		auto it = std::find_if(players.begin(), players.end(), [varPlayerID](const std::unique_ptr<Player>& p){
+			return p->getID() == varPlayerID;
+		});
+		if (it == players.end())
+		{
+			Log::info("Game", String::format("Failed to remove player with ID %u, player not found", varPlayerID));
+			return;
+		}
+		it->get()->onDisconnect();
+		players.erase(it);
+	}
+
+	std::vector<std::unique_ptr<Player>>& getPlayers()
+	{
+		return players;
+	}
+
+	Player* getPlayerByID(u32 varPlayerID)
+	{
+		for (auto& p : players)
+		{
+			if (p->getID() == varPlayerID)
+				return p.get();
+		}
+		return nullptr;
+	}
+
+	std::vector<U8String>& getLobbyMsgs()
+	{
+		return lobbyMsgs;
 	}
 }

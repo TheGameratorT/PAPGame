@@ -4,6 +4,7 @@
 
 #include "object.hpp"
 #include "objects.hpp"
+#include "network/packet.hpp"
 
 class Scene : public Object
 {
@@ -14,6 +15,7 @@ public:
 	void onDestroy() override;
 	virtual void onDestroyRequest();
 	virtual void onConnectionLost();
+	virtual void onPacketReceived(Network::PacketID id, const Network::Packet& packet);
 
 	constexpr static Scene* cast(void* other)
 	{ return static_cast<Scene*>(other); }
