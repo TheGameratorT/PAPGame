@@ -290,6 +290,7 @@ void TitleScene::onDestroy()
 void TitleScene::onDestroyRequest()
 {
 	switchingScene = true;
+	setCommonWidgetsEnabled(false);
 }
 
 void TitleScene::onConnectionLost()
@@ -483,12 +484,12 @@ void TitleScene::showIPDialog()
 {
 	txtDtWidget.setTexture(&ipdDtTexture);
 
-	txtTbWidget.setFont("arial");
+	txtTbWidget.setFont("smooth");
 	txtTbWidget.setFontScale(0.70f);
 	txtTbWidget.setTextSidePadding(768.0f);
 	txtTbWidget.setMaxCharacters(21);
 	txtTbWidget.setCharValidator([](Unicode::Codepoint chr){
-		return (chr >= 48 && chr <= 58) || chr == 46;
+		return (chr >= 48 && chr <= 58) || chr == 46 || (chr >= 65 && chr <= 90) || (chr >= 97 && chr <= 122);
 	});
 
 	auto onClick = [this](){

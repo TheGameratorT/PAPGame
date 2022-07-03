@@ -2,7 +2,7 @@
 
 #include "game.hpp"
 #include "titlescene.hpp"
-#include "loadingscreen.hpp"
+#include "screen/loadingscreen.hpp"
 
 #include "render/gle/render.hpp"
 #include "render/fader.hpp"

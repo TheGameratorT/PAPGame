@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.hpp"
+
 NETWORK_BEGIN
 
 class PacketBuffer;

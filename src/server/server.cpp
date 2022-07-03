@@ -2,12 +2,15 @@
 
 #include <utility>
 
+#include "minigame/mgtypewriter.hpp"
+
 #include "infogui.hpp"
 #include "time/timer.hpp"
 #include "acceptor.hpp"
 #include "network/packet.hpp"
 #include "network/packet/pkt_s2c_lobbymsg.hpp"
 #include "network/packet/pkt_s2c_startgame.hpp"
+#include "random/mersennetwister.hpp"
 #include "util.hpp"
 
 class ScheduledTask
@@ -24,13 +27,15 @@ public:
 
 namespace Server {
 
-static Acceptor* acceptor = nullptr;
-static InfoGUI* gui = nullptr;
+static Mt19937* random;
+static Acceptor* acceptor;
+static InfoGUI* gui;
 static Timer timer;
 
-static bool serverRunning = true;
-static bool serverStopping = false;
-static bool shouldStopServer = false;
+bool restartFlag;
+static bool serverRunning;
+static bool serverStopping;
+static bool shouldStopServer;
 
 static u32 tickRate = 30;
 static float tickDuration = 1.0f / static_cast<float>(tickRate);
@@ -38,17 +43,29 @@ static float tickDuration = 1.0f / static_cast<float>(tickRate);
 static double lastTickTime;
 static float tickDelta;
 static float tickAlpha;
-static int currentTps;
+int currentTps;
 
-bool gameStarted = false;
-MiniGameType currentMinigame;
+bool gameStarted;
+MiniGame* currentMinigame;
+MiniGameType currentMinigameType;
 
 std::vector<std::unique_ptr<Player>> players;
 std::vector<U8String> lobbyChat;
 std::vector<std::unique_ptr<ScheduledTask>> scheduledTasks;
 
+static bool playedMinigameList[MiniGameType::Count] = {};
+
 bool init()
 {
+	random = new Mt19937(Seed32::fromEntropySource());
+
+	restartFlag = false;
+	serverRunning = true;
+	serverStopping = false;
+	shouldStopServer = false;
+	gameStarted = false;
+	currentMinigame = nullptr;
+
 	gui = new InfoGUI();
 	if (!gui->init())
 	{
@@ -80,6 +97,8 @@ bool init()
 		playerPtr->onConnect();
 	});
 
+	resetPlayedMinigames();
+
 	timer.start();
 	return true;
 }
@@ -88,6 +107,8 @@ void destroy()
 {
 	// TODO: Check if needs safe disconnect
 	players.clear();
+	lobbyChat.clear();
+	scheduledTasks.clear();
 
 	delete acceptor;
 
@@ -96,10 +117,14 @@ void destroy()
 		gui->destroy();
 		delete gui;
 	}
+
+	delete random;
 }
 
 void run()
 {
+	Log::info("Server", "Server is running.");
+
 	double lastTime = getElapsedTime();
 	float tickTimer = 0.0f;
 
@@ -163,10 +188,27 @@ void stop()
 	shouldStopServer = true;
 }
 
+void restart()
+{
+	Log::info("Server", "Restarting the server...");
+	restartFlag = true;
+	stop();
+}
+
 void update(double timeNow)
 {
 	tickDelta = static_cast<float>(timeNow - lastTickTime);
 	lastTickTime = timeNow;
+	currentTps = std::lround(1.0f / tickDelta);
+
+	if (serverStopping)
+		return;
+
+	if (currentMinigame && players.empty()) // if not in lobby
+	{
+		restart();
+		return;
+	}
 
 	SizeT scheduledTaskCount = scheduledTasks.size();
 	for (SizeT i = scheduledTaskCount - 1; i <= 0; i--)
@@ -175,9 +217,12 @@ void update(double timeNow)
 		if (getElapsedTime() > scheduledTask.firingTime)
 		{
 			scheduledTask.callback();
-			scheduledTasks.erase(scheduledTasks.begin() + i);
+			scheduledTasks.erase(scheduledTasks.begin() + i32(i));
 		}
 	}
+
+	if (currentMinigame)
+		currentMinigame->onUpdate();
 }
 
 void render()
@@ -245,20 +290,111 @@ void executeCommand(const std::string& cmd)
 	{
 		stop();
 	}
+	else if (cmd.starts_with("restart"))
+	{
+		restart();
+	}
 	else if (cmd.starts_with("say "))
 	{
 		sendChatMessage(Util::stringAsUtf8(cmd.substr(4)));
 	}
 }
 
-void startGame()
+// Tells the current minigame that all the clients are ready
+void notifyClientsReady()
 {
-	u32 mgCount = MiniGameType::Count;
-	auto mg = MiniGameType(std::rand() % mgCount);
+	if (currentMinigame)
+		currentMinigame->onClientsReady();
+}
+
+void resetClientsReady()
+{
 	for (auto& p : players)
-		p->getClient()->sendPacket<PKT_S2C_StartGame>(mg);
-	currentMinigame = mg;
+		p->setGameReady(false);
+}
+
+void resetPlayedMinigames()
+{
+	for (bool& b : playedMinigameList)
+		b = false;
+}
+
+bool playedAllMinigames()
+{
+	bool playedAll = true;
+	for (bool b : playedMinigameList)
+	{
+		if (!b)
+			playedAll = false;
+	}
+	return playedAll;
+}
+
+MiniGameType getNextRandomMinigame()
+{
+	if (playedAllMinigames())
+		resetPlayedMinigames();
+	u32 mgCount = MiniGameType::Count;
+	u32 mgID;
+	do {
+		mgID = getRandom(mgCount);
+	} while (playedMinigameList[mgID]);
+	return MiniGameType(mgID);
+}
+
+void startRandomMinigame()
+{
+	resetClientsReady();
+
+	//MiniGameType mgType = getNextRandomMinigame();
+	MiniGameType mgType = MiniGameType::TypeWrite;
+	startMinigame(mgType);
 	gameStarted = true;
+}
+
+void startMinigame(MiniGameType mgType)
+{
+	currentMinigameType = mgType;
+	playedMinigameList[mgType] = true;
+
+	for (auto& p : players)
+		p->getClient()->sendPacket<PKT_S2C_StartGame>(mgType);
+
+	switch (mgType)
+	{
+	/*case MiniGameType::Pong:
+		return;
+	case MiniGameType::Rythm:
+		return;*/
+	case MiniGameType::TypeWrite:
+		createMinigame<MGTypeWriter>();
+		return;
+	default:
+		break;
+	}
+
+	Log::error("Server", "Tried to start invalid minigame!");
+	stop(); // abort execution
+}
+
+void createMinigame(const MiniGame::Profile* minigame)
+{
+	if (currentMinigame)
+	{
+		currentMinigame->onDestroy();
+		delete currentMinigame;
+	}
+	Log::info("Server", std::string("Created MiniGame: ") + minigame->name);
+	MiniGame* newMg = minigame->ctor();
+	newMg->onCreate();
+	currentMinigame = newMg;
+}
+
+MiniGame* getMinigame(const MiniGame::Profile* minigame)
+{
+	if (currentMinigame && &currentMinigame->getProfile() == minigame)
+		return currentMinigame;
+	return nullptr;
 }
 
 u32 getNextPlayerID()
@@ -271,6 +407,11 @@ u32 getNextTaskID()
 {
 	static u32 next = 0;
 	return ++next;
+}
+
+u32 getRandom(u32 exclusiveMax)
+{
+	return random->next() % exclusiveMax;
 }
 
 }

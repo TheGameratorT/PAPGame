@@ -17,6 +17,7 @@ public:
 	void onRender() override;
 	void onDestroy() override;
 	void onDestroyRequest() override;
+	void onConnectionLost() override;
 
 private:
 	mGUI::Container canvas;
@@ -66,6 +67,8 @@ private:
 
 	std::vector<std::unique_ptr<RenderLobbyMsg>> renderMsgs;
 	std::vector<std::unique_ptr<RenderPlayerEntry>> renderPlayers;
+
+	bool switchingScene = false;
 
 	static void setPlayerReady();
 	void sendMessage();

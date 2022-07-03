@@ -13,11 +13,13 @@ u32 arcMain(const std::vector<std::string>& args)
 
 	try
 	{
-		if (Server::init())
-		{
-			Server::run();
-			Server::destroy();
-		}
+		do {
+			if (Server::init())
+			{
+				Server::run();
+				Server::destroy();
+			}
+		} while (Server::getRestartFlag());
 	}
 	catch (const std::exception& ex)
 	{
@@ -25,7 +27,7 @@ u32 arcMain(const std::vector<std::string>& args)
 
 		Log::error("Server", "======== EXCEPTION ========");
 		Log::error("Server", exMsg);
-		Log::error("Server", "Aborting exection...");
+		Log::error("Server", "Aborting execution...");
 		Log::error("Server", "===========================");
 
 		MessageBox msgBox;

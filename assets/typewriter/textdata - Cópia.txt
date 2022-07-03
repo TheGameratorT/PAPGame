@@ -1,0 +1,35 @@
+-The lonely coder (by Tiago Silva)
+There was a coder, that really liked to code. One day while 
+looking at his monitor he decided, "that's it, I really need 
+to touch some grass", he stood up, opened his door and to his 
+surprise, there was nothing outside. He closed his eyes and 
+opened them again, only to see a white void of despair with 
+nothing around him. So he took three steps forward, and out 
+of a sudden, he sees something! IT'S LIGHT! HE CAN SEE 
+LIGHT! He recognizes this weird thing that appears to have 
+some weird green things coming out from it, he wonders if 
+this is "grass". So as he was about to touch it, he died of fear.
+
+-Robot and ladybug (by Tiago Silva)
+There was a robot, a very innocent robot that liked to fly
+high. One day, he found a ladybug, to the eyes of everyone
+else there was just an insect, but the robot saw something,
+something special in between all the others that made that
+one stand out, but never really knew why. All the time, the
+robot thought highly of that ladybug and sometimes the robot
+would do stupid things just to try and get the ladybug to
+like him. But, poor robot, who spent so much time studying,
+never actually took the time to learn about ladybugs.
+
+-Arclight (by Arcayn)
+Arclight is an ecosystem intended to help developers in 
+creating new C++ projects quickly without having to setup 
+a common codebase everytime. It offers a wide range of 
+features, ranging from basic utilities over image 
+manipulation up to 3D rendering. Additionally, all code 
+is written in C++20 by making heavy use of new concepts 
+introduced in later C++ standards. No code cruft, no old 
+libraries from over 20 years, no license confusion: Arclight 
+unifies all aspects of application development into 
+one toolbox.
+

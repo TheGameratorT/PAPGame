@@ -9,13 +9,20 @@ class PKT_C2S_PlayerReady : public Network::Packet
 public:
 	DECL_PACKET()
 
-	explicit PKT_C2S_PlayerReady(bool ready);
+	enum ReadyType
+	{
+		Ready = 0,
+		NotReady = 1,
+		GameReady = 2
+	};
+
+	explicit PKT_C2S_PlayerReady(ReadyType ready);
 
 	explicit PKT_C2S_PlayerReady(Network::PacketBuffer& buf);
 	void serialize(Network::PacketBuffer& buf) const override;
 
-	[[nodiscard]] constexpr bool getReady() const { return m_ready; }
+	[[nodiscard]] constexpr ReadyType getReady() const { return m_ready; }
 
 private:
-	bool m_ready;
+	ReadyType m_ready;
 };

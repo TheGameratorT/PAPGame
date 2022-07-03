@@ -1,5 +1,7 @@
 #include "pkt_s2c_disconnect.hpp"
 
+#include "network/packetbuffer.hpp"
+
 IMPL_PACKET(PKT_S2C_Disconnect)
 
 PKT_S2C_Disconnect::PKT_S2C_Disconnect(std::string message) :

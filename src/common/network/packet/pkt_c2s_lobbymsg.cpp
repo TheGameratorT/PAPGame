@@ -1,5 +1,7 @@
 #include "pkt_c2s_lobbymsg.hpp"
 
+#include "network/packetbuffer.hpp"
+
 IMPL_PACKET(PKT_C2S_LobbyMsg)
 
 PKT_C2S_LobbyMsg::PKT_C2S_LobbyMsg(U8String msg) :

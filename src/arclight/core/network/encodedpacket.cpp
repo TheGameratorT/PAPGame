@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "packetbuffer.hpp"
+
 NETWORK_BEGIN
 
 EncodedPacket::EncodedPacket() :

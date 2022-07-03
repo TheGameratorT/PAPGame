@@ -1,5 +1,7 @@
 #include "pkt_s2c_playerstate.hpp"
 
+#include "network/packetbuffer.hpp"
+
 IMPL_PACKET(PKT_S2C_PlayerState)
 
 PKT_S2C_PlayerState::PKT_S2C_PlayerState(u32 playerID, State state, bool ready) :

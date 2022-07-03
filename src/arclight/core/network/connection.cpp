@@ -6,6 +6,7 @@
 #include <asio/read.hpp>
 #include <asio/write.hpp>
 
+#include "packetbuffer.hpp"
 #include "util/log.hpp"
 
 using asio::ip::tcp;

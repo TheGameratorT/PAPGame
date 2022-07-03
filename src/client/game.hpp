@@ -53,6 +53,8 @@ namespace Game
 
 	U8String getClipboard();
 
+	// SCENE STUFF -----------
+
 	void switchScene(const ObjectProfile* profile);
 
 	template<SceneType T>
@@ -61,7 +63,14 @@ namespace Game
 	Scene* createScene(int sceneID);
 
 	template<SceneType T>
-	T* createScene() { return reinterpret_cast<T*>(createScene(Objects::idOf<T>())); }
+	T* createScene() { return static_cast<T*>(createScene(Objects::idOf<T>())); }
+
+	Scene* getScene(int sceneID);
+
+	template<SceneType T>
+	T* getScene() { return static_cast<T*>(getScene(Objects::idOf<T>())); }
+
+	// GAME CONTROL -----------
 
 	void setFullscreen(bool newValue);
 
@@ -73,8 +82,14 @@ namespace Game
 	const TrueType::Font& getFont(const std::string& fontName);
 
 	void connect(const std::string& address, u16 port);
+	void onDisconnect();
 
 	void schedule(const TaskCallback& callback, u32 delayMs);
+
+	void onInstructed();
+	void onPlaceListingClosed();
+
+	// PLAYER MANAGEMENT -----------
 
 	void setPlayerName(const U8String& name);
 	const U8String& getPlayerName();

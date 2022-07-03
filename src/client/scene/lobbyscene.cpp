@@ -5,7 +5,9 @@
 #include "network/gamenet.hpp"
 #include "network/packet/pkt_c2s_lobbymsg.hpp"
 #include "network/packet/pkt_c2s_playerready.hpp"
+#include "screen/connectionlostscreen.hpp"
 #include "util.hpp"
+#include "render/fader.hpp"
 
 constexpr u32 TICK_RATE = 30;
 constexpr float TICK_DURATION = 1.0f / TICK_RATE;
@@ -125,10 +127,10 @@ void LobbyScene::onCreate()
 
 void LobbyScene::onUpdate()
 {
-	if (!GameNet::isConnected())
+	if (switchingScene)
 	{
-		// Return to title on connection lost
-		Game::reload();
+		if (Fader::hasFadingFinished())
+			destroy();
 		return;
 	}
 
@@ -350,19 +352,29 @@ void LobbyScene::onDestroy()
 	btn3nTexture.destroy();
 	btn3hTexture.destroy();
 	btn3cTexture.destroy();
+	btn3iTexture.destroy();
+	rcb0Texture.destroy();
+	rcb1Texture.destroy();
 	exitTexture.destroy();
 	settingsTexture.destroy();
 }
 
 void LobbyScene::onDestroyRequest()
 {
-	destroy();
+	switchingScene = true;
+}
+
+void LobbyScene::onConnectionLost()
+{
+	ConnectionLostScreen::show();
 }
 
 void LobbyScene::setPlayerReady()
 {
+	using PReadyType = PKT_C2S_PlayerReady::ReadyType;
+
 	Player* player = Game::getPlayer();
-	GameNet::getConnection()->sendPacket<PKT_C2S_PlayerReady>(!player->getReady());
+	GameNet::getConnection()->sendPacket<PKT_C2S_PlayerReady>(player->getReady() ? PReadyType::NotReady : PReadyType::Ready);
 }
 
 void LobbyScene::sendMessage()

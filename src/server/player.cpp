@@ -8,14 +8,24 @@
 #include "network/packet/pkt_c2s_handshake.hpp"
 #include "network/packet/pkt_c2s_lobbymsg.hpp"
 #include "network/packet/pkt_c2s_playerready.hpp"
+#include "network/packet/pkt_c2s_typestate.hpp"
 #include "network/packet/pkt_s2c_lobbydata.hpp"
 #include "network/packet/pkt_s2c_playerstate.hpp"
 #include "math/math.hpp"
+#include "util/log.hpp"
+#include "util.hpp"
+
+#include "minigame/mgtypewriter.hpp"
 
 constexpr SizeT MAX_MSG_HISTORY_COUNT = 12;
 
 Player::Player(Network::ConnectedClientPtr client, U8String name) :
-	m_id(0), m_client(std::move(client)), m_name(std::move(name)), m_isReady(false)
+	m_id(0),
+	m_client(std::move(client)),
+	m_name(std::move(name)),
+	m_isReady(false),
+	m_gameReady(false),
+	m_charsTyped(0)
 {}
 
 Player::~Player() = default;
@@ -63,6 +73,7 @@ void Player::onPacketReceived(Network::PacketID id, const Network::Packet& packe
 	{
 	PKT_C2S_JUMP(PKT_C2S_LobbyMsg, onLobbyMessage);
 	PKT_C2S_JUMP(PKT_C2S_PlayerReady, onReady);
+	PKT_C2S_JUMP(PKT_C2S_TypeState, onTypeState);
 	}
 }
 
@@ -76,21 +87,55 @@ void Player::onLobbyMessage(const PKT_C2S_LobbyMsg& packet)
 
 void Player::onReady(const PKT_C2S_PlayerReady& packet)
 {
+	using PReadyType = PKT_C2S_PlayerReady::ReadyType;
+
+	PReadyType ready = packet.getReady();
+
 	if (Server::getGameStarted())
-		return;
-
-	m_isReady = packet.getReady();
-
-	bool allReady = true;
-	for (auto& p : Server::getPlayers())
 	{
-		if (!p->getReady())
-			allReady = false;
-		p->getClient()->sendPacket<PKT_S2C_PlayerState>(m_id, PKT_S2C_PlayerState::Ready, m_isReady);
-	}
+		// Verifies that the client has entered the game and is waiting for others
+		if (ready == PReadyType::GameReady)
+		{
+			m_gameReady = true;
 
-	if (allReady)
-		Server::startGame();
+			bool allReady = true;
+			for (auto& p : Server::getPlayers())
+			{
+				if (!p->getGameReady())
+					allReady = false;
+			}
+			if (allReady)
+				Server::notifyClientsReady();
+		}
+	}
+	else
+	{
+		// Verifies that the client has clicked the ready button
+		m_isReady = ready == PReadyType::Ready;
+
+		bool allReady = true;
+		for (auto& p : Server::getPlayers())
+		{
+			if (!p->getReady())
+				allReady = false;
+			p->getClient()->sendPacket<PKT_S2C_PlayerState>(m_id, PKT_S2C_PlayerState::Ready, m_isReady);
+		}
+
+		if (allReady)
+			Server::startRandomMinigame();
+	}
+}
+
+void Player::onTypeState(const PKT_C2S_TypeState& packet)
+{
+	u32 charsTyped = packet.getCharsTyped();
+	if (charsTyped < m_charsTyped)
+	{
+		Log::warn("Player", std::string("Player \"") +
+			Util::utf8AsString(m_name) + "\" with ID " + std::to_string(m_id) + " sent invalid typing information");
+		return;
+	}
+	m_charsTyped = charsTyped;
 }
 
 PlayerInfo Player::createInfo() const

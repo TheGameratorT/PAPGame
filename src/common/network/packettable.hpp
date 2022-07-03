@@ -11,6 +11,7 @@
 class PKT_C2S_Handshake;
 class PKT_C2S_LobbyMsg;
 class PKT_C2S_PlayerReady;
+class PKT_C2S_TypeState;
 
 class PKT_S2C_Handshake;
 class PKT_S2C_Disconnect;
@@ -18,6 +19,8 @@ class PKT_S2C_LobbyData;
 class PKT_S2C_LobbyMsg;
 class PKT_S2C_PlayerState;
 class PKT_S2C_StartGame;
+class PKT_S2C_TypeState;
+class PKT_S2C_TypeEnd;
 
 namespace PacketTable
 {
@@ -30,6 +33,7 @@ namespace PacketTable
 		PacketTable_DEFINE_ID(PKT_C2S_Handshake, 0)
 		PacketTable_DEFINE_ID(PKT_C2S_LobbyMsg, 1)
 		PacketTable_DEFINE_ID(PKT_C2S_PlayerReady, 2)
+		PacketTable_DEFINE_ID(PKT_C2S_TypeState, 3)
 		return -1;
 	}
 
@@ -42,6 +46,8 @@ namespace PacketTable
 		PacketTable_DEFINE_ID(PKT_S2C_LobbyMsg, 3)
 		PacketTable_DEFINE_ID(PKT_S2C_PlayerState, 4)
 		PacketTable_DEFINE_ID(PKT_S2C_StartGame, 5)
+		PacketTable_DEFINE_ID(PKT_S2C_TypeState, 6)
+		PacketTable_DEFINE_ID(PKT_S2C_TypeEnd, 7)
 		return -1;
 	}
 }

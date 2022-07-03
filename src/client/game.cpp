@@ -17,10 +17,15 @@
 #include "scene/titlescene.hpp"
 #include "scene/lobbyscene.hpp"
 #include "render/renderer.hpp"
-#include "loadingscreen.hpp"
 #include "render/fader.hpp"
 #include "font/truetype/loader.hpp"
 #include "network/gamenet.hpp"
+
+#include "screen/loadingscreen.hpp"
+#include "screen/connectionlostscreen.hpp"
+#include "screen/instructionscreen.hpp"
+#include "screen/waitingforplayersscreen.hpp"
+#include "screen/placelistingscreen.hpp"
 
 class KeyHandle_impl
 {
@@ -69,6 +74,7 @@ namespace Game
 	int currentTps;
 
 	int nextSceneID;
+	int currentSceneID;
 	Scene* currentScene;
 	std::vector<std::unique_ptr<Object>> objects;
 	std::vector<KeyCallback> keyCallbacks;
@@ -144,13 +150,17 @@ namespace Game
 		inputSystem.enableHeldEvent();
 		inputSystem.connect(*window);
 
-		loadFont("arial", "@/arial.ttf");
-		loadFont("pixels", "@/PixeloidSans-nR3g1.ttf");
-		loadFont("smooth", "@/UDDigiKyokashoN-R.ttf");
+		loadFont("arial", "@/font/arial.ttf");
+		loadFont("pixels", "@/font/PixeloidSans-nR3g1.ttf");
+		loadFont("smooth", "@/font/UDDigiKyokashoN-R.ttf");
 
 		gui.init();
 		Fader::init();
 		LoadingScreen::init();
+		ConnectionLostScreen::init();
+		InstructionScreen::init();
+		WaitingForPlayersScreen::init();
+		PlaceListingScreen::init();
 
 		vSync = config.get<bool>("vSync", true);
 		vSync ? window->enableVSync() : window->disableVSync();
@@ -247,6 +257,10 @@ namespace Game
 	void destroy()
 	{
 		GameNet::destroy();
+		PlaceListingScreen::destroy();
+		WaitingForPlayersScreen::destroy();
+		InstructionScreen::destroy();
+		ConnectionLostScreen::destroy();
 		LoadingScreen::destroy();
 		Fader::destroy();
 		gui.destroy();
@@ -268,6 +282,10 @@ namespace Game
 			currentScene->onDestroy();
 			delete currentScene;
 		}
+		PlaceListingScreen::close();
+		WaitingForPlayersScreen::close();
+		InstructionScreen::close();
+		ConnectionLostScreen::close();
 		LoadingScreen::close();
 		createScene<TitleScene>();
 	}
@@ -294,6 +312,10 @@ namespace Game
 		}
 
 		LoadingScreen::update();
+		ConnectionLostScreen::update();
+		InstructionScreen::update();
+		WaitingForPlayersScreen::update();
+		PlaceListingScreen::update();
 
 		SizeT scheduledTaskCount = scheduledTasks.size();
 		for (SizeT i = scheduledTaskCount - 1; i <= 0; i--)
@@ -326,6 +348,7 @@ namespace Game
 			currentScene->onDestroy();
 			delete currentScene;
 			createScene(nextSceneID);
+			currentSceneID = nextSceneID;
 			nextSceneID = 0;
 		}
 
@@ -339,6 +362,10 @@ namespace Game
 		GLE::clear(GLE::ClearBuffer::Color);
 
 		LoadingScreen::render();
+		ConnectionLostScreen::render();
+		InstructionScreen::render();
+		WaitingForPlayersScreen::render();
+		PlaceListingScreen::render();
 
 		if (currentScene->getCreated())
 			currentScene->onRender();
@@ -418,6 +445,13 @@ namespace Game
 		return currentScene;
 	}
 
+	Scene* getScene(int sceneID)
+	{
+		if (sceneID == currentSceneID)
+			return currentScene;
+		return nullptr;
+	}
+
 	void setFullscreen(bool newValue)
 	{
 		if (fullscreen == newValue)
@@ -476,10 +510,15 @@ namespace Game
 			}
 			else
 			{
-				if (currentScene)
-					currentScene->onConnectionLost();
+				onDisconnect();
 			}
 		});
+	}
+
+	void onDisconnect()
+	{
+		if (currentScene)
+			currentScene->onConnectionLost();
 	}
 
 	void schedule(const TaskCallback& callback, u32 delayMs)
@@ -488,6 +527,18 @@ namespace Game
 		task.callback = callback;
 		task.firingTime = float(getElapsedTime() + float(delayMs) / 1000.0f);
 		scheduledTasks.push_back(std::make_unique<ScheduledTask>(task));
+	}
+
+	void onInstructed()
+	{
+		if (currentScene)
+			currentScene->onInstructed();
+	}
+
+	void onPlaceListingClosed()
+	{
+		if (currentScene)
+			currentScene->onPlaceListingClosed();
 	}
 
 	const U8String& getPlayerName() { return playerName; }

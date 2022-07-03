@@ -5,6 +5,8 @@
 #include "scene/splashscene.hpp"
 #include "scene/titlescene.hpp"
 #include "scene/lobbyscene.hpp"
+#include "scene/mgpongscene.hpp"
+#include "scene/mgrythmscene.hpp"
 #include "scene/mgtypewritescene.hpp"
 
 template<typename ...P>
@@ -16,6 +18,8 @@ static constexpr auto ObjectProfilesA =
 		SplashScene,
 		TitleScene,
 		LobbyScene,
+		MGPongScene,
+		MGRythmScene,
 		MGTypeWriteScene
 	>();
 

@@ -69,13 +69,23 @@ void TextBox::render()
 
 	i32 xOffset = std::lroundl(m_textSidePadding * fontScale);
 	i32 yOffset = std::lroundl((float(fontHeight) + m_textYOffset) * fontScale);
+
+	if (m_textAlign == AlignCenter)
+	{
+		xOffset += std::lroundl(float(bounds.getWidth() - fontStr.canvasSize.x) / 2.0f);
+	}
+	else if (m_textAlign == AlignRight)
+	{
+		xOffset += bounds.getWidth() - fontStr.canvasSize.x;
+	}
+
 	i32 fontX = bounds.x + xOffset;
 
 	if (!m_text.empty())
 	{
 		i32 fontY = bounds.y + yOffset + std::lroundl(-float(fontStr.glyphYMax) * fontScale);
 
-		Font::renderFontString(font, m_textTexture.getGleTex2D(), fontStr);
+		Font::renderFontString(font, m_textTexture.getGleTex2D(), fontStr, {}, {}, m_fontColor);
 		RectI textBounds = {
 			fontX,
 			fontY,
@@ -86,7 +96,7 @@ void TextBox::render()
 		m_textTexture.destroy();
 	}
 
-	if (m_caretVisible && Game::getGUI().isWidgetFocused(this))
+	if (!m_hideCaret && m_caretVisible && Game::getGUI().isWidgetFocused(this))
 	{
 		i32 caretSize = std::lroundl(1860.0f * fontScale);
 		Texture& caretTex = Game::getGUI().getCaretTexture();
@@ -136,7 +146,7 @@ void TextBox::onKey(Key key, KeyState state)
 		{
 			if (key == KeyCode::Backspace)
 			{
-				if (m_caretPos != 0)
+				if (!m_disableBackspace && m_caretPos != 0)
 				{
 					m_text.erase(m_caretPos - 1, 1);
 					m_caretPos--;
@@ -144,17 +154,17 @@ void TextBox::onKey(Key key, KeyState state)
 			}
 			else if (key == KeyCode::Left)
 			{
-				if (m_caretPos != 0)
+				if (!m_fixedCaret && m_caretPos != 0)
 					m_caretPos--;
 			}
 			else if (key == KeyCode::Right)
 			{
-				if (m_caretPos != m_text.size())
+				if (!m_fixedCaret && m_caretPos != m_text.size())
 					m_caretPos++;
 			}
 		}
 
-		if (Game::getGUI().getCtrlDown() && state == KeyState::Pressed && key == KeyCode::V)
+		if (!m_disableClipboard && Game::getGUI().getCtrlDown() && state == KeyState::Pressed && key == KeyCode::V)
 		{
 			U8String str = Game::getClipboard();
 			SizeT strSize = str.size();
@@ -176,6 +186,12 @@ void TextBox::onKeyChar(KeyChar chr)
 	putIfValid(Unicode::Codepoint(chr));
 }
 
+void TextBox::put(Unicode::Codepoint cp)
+{
+	m_text.insert(m_caretPos, cp);
+	m_caretPos++;
+}
+
 void TextBox::putIfValid(Unicode::Codepoint cp)
 {
 	bool allow = true;
@@ -184,8 +200,7 @@ void TextBox::putIfValid(Unicode::Codepoint cp)
 	if (!allow)
 		return;
 
-	m_text.insert(m_caretPos, cp);
-	m_caretPos++;
+	put(cp);
 }
 
 void TextBox::setText(const U8String& text)
@@ -198,6 +213,14 @@ void TextBox::clear()
 {
 	m_text.clear();
 	m_caretPos = 0;
+}
+
+void TextBox::setCaretPos(u32 caretPos)
+{
+	u32 textSize = m_text.size();
+	if (caretPos > textSize)
+		caretPos = textSize;
+	m_caretPos = caretPos;
 }
 
 mGUI_END

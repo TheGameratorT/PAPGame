@@ -10,6 +10,8 @@
 class PKT_S2C_LobbyData;
 class PKT_S2C_LobbyMsg;
 class PKT_S2C_PlayerState;
+class PKT_S2C_StartGame;
+class PKT_S2C_TypeState;
 
 namespace GameNet
 {
@@ -28,9 +30,4 @@ namespace GameNet
 
 	Network::ClientConnection* getConnection();
 	bool getHandshakeDone();
-
-	void onPacketReceived(Network::PacketID id, const Network::Packet& packet);
-	void onLobbyData(const PKT_S2C_LobbyData& packet);
-	void onLobbyMsg(const PKT_S2C_LobbyMsg& packet);
-	void onPlayerState(const PKT_S2C_PlayerState& packet);
 }

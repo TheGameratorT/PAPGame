@@ -2,10 +2,9 @@
 
 #include <array>
 
+#include "common.hpp"
 #include "types.hpp"
 #include "common/concepts.hpp"
-
-#include "packetbuffer.hpp"
 
 // TODO: UDP Packets?
 
@@ -19,10 +18,10 @@ const Network::PacketProfile& T::getProfile() const { return profile; }
 
 NETWORK_BEGIN
 
-using PacketID = u32;
-
 class Packet;
+class PacketBuffer;
 
+using PacketID = u32;
 using PacketCtorT = Packet* (*)(PacketBuffer&);
 
 struct PacketProfile

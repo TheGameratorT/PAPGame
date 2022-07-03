@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network/packet.hpp"
+#include "locale/unicodestring.hpp"
 
 #include <string>
 
@@ -15,7 +16,7 @@ public:
 	void serialize(Network::PacketBuffer& buf) const override;
 
 	[[nodiscard]] constexpr const std::string& getMagic() const { return m_magic; }
-	[[nodiscard]] constexpr int getVersion() const { return m_gameVersion; }
+	[[nodiscard]] constexpr u32 getVersion() const { return m_gameVersion; }
 	[[nodiscard]] constexpr const U8String& getPlayerName() const { return m_playerName; }
 
 private:

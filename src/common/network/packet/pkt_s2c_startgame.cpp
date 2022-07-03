@@ -1,5 +1,7 @@
 #include "pkt_s2c_startgame.hpp"
 
+#include "network/packetbuffer.hpp"
+
 IMPL_PACKET(PKT_S2C_StartGame)
 
 PKT_S2C_StartGame::PKT_S2C_StartGame(MiniGameType gameType) :

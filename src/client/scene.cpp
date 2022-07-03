@@ -30,7 +30,12 @@ void Scene::onConnectionLost()
 
 }
 
-void Scene::onPacketReceived(Network::PacketID id, const Network::Packet& packet)
+void Scene::onInstructed()
+{
+
+}
+
+void Scene::onPlaceListingClosed()
 {
 
 }

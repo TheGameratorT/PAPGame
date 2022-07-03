@@ -1,16 +1,18 @@
 #include "pkt_c2s_playerready.hpp"
 
+#include "network/packetbuffer.hpp"
+
 IMPL_PACKET(PKT_C2S_PlayerReady)
 
-PKT_C2S_PlayerReady::PKT_C2S_PlayerReady(bool ready) :
+PKT_C2S_PlayerReady::PKT_C2S_PlayerReady(ReadyType ready) :
 	m_ready(ready)
 {}
 
 PKT_C2S_PlayerReady::PKT_C2S_PlayerReady(Network::PacketBuffer& buf) :
-	m_ready(buf.readBool())
+	m_ready(ReadyType(buf.read<u8>()))
 {}
 
 void PKT_C2S_PlayerReady::serialize(Network::PacketBuffer& buf) const
 {
-	buf.writeBool(m_ready);
+	buf.write<u8>(m_ready);
 }

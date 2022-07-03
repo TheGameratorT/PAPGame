@@ -1,5 +1,7 @@
 #include "pkt_s2c_lobbydata.hpp"
 
+#include "network/packetbuffer.hpp"
+
 IMPL_PACKET(PKT_S2C_LobbyData)
 
 PKT_S2C_LobbyData::PKT_S2C_LobbyData(

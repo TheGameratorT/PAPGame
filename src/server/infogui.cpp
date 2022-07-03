@@ -37,8 +37,10 @@ bool InfoGUI::init()
 		m_inputText.clear();
 		Server::executeCommand(command);
 	});
-
 	m_miscWnd.addControl(m_inputText);
+
+	m_tpsLabel.setText("Current TPS: 0");
+	m_miscWnd.addControl(m_tpsLabel);
 
 	return true;
 }
@@ -46,6 +48,7 @@ bool InfoGUI::init()
 void InfoGUI::destroy()
 {
 	delete m_window;
+	GUI::destroy();
 }
 
 void InfoGUI::update()
@@ -58,6 +61,7 @@ void InfoGUI::update()
 	GUI::prepareRender();
 	drawPlayerNames();
 	drawLobbyChat();
+	m_tpsLabel.setText("Current TPS: " + std::to_string(Server::getCurrentTPS()));
 	m_miscWnd.update();
 	GUI::render();
 

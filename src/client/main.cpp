@@ -26,7 +26,7 @@ u32 arcMain(const std::vector<std::string>& args)
 
 		Log::error("Game", "======== EXCEPTION ========");
 		Log::error("Game", exMsg);
-		Log::error("Game", "Aborting exection...");
+		Log::error("Game", "Aborting execution...");
 		Log::error("Game", "===========================");
 
 		MessageBox msgBox;

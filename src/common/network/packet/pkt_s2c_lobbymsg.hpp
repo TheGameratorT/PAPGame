@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network/packet.hpp"
+#include "locale/unicodestring.hpp"
 
 #include <string>
 

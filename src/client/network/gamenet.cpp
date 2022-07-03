@@ -9,12 +9,29 @@
 #include "network/packet/pkt_s2c_lobbydata.hpp"
 #include "network/packet/pkt_s2c_lobbymsg.hpp"
 #include "network/packet/pkt_s2c_playerstate.hpp"
+#include "network/packet/pkt_s2c_startgame.hpp"
+#include "network/packet/pkt_s2c_typestate.hpp"
+#include "network/packet/pkt_s2c_typeend.hpp"
+#include "scene/mgpongscene.hpp"
+#include "scene/mgrythmscene.hpp"
+#include "scene/mgtypewritescene.hpp"
 #include "gameinfo.hpp"
 #include "util/log.hpp"
 
 #include "player.hpp"
 
 using namespace Network;
+
+namespace GameNet
+{
+static void onPacketReceived(Network::PacketID id, const Network::Packet& packet);
+static void onLobbyData(const PKT_S2C_LobbyData& packet);
+static void onLobbyMsg(const PKT_S2C_LobbyMsg& packet);
+static void onPlayerState(const PKT_S2C_PlayerState& packet);
+static void onStartGame(const PKT_S2C_StartGame& packet);
+static void onTypeState(const PKT_S2C_TypeState& packet);
+static void onTypeEnd(const PKT_S2C_TypeEnd& packet);
+}
 
 class PacketListener
 {
@@ -23,7 +40,7 @@ public:
 	{
 		if (!GameNet::getHandshakeDone() && id != PacketTable::idOfS2C<PKT_S2C_Handshake>())
 		{
-			Log::error("GameNet", std::string("Server tried to send packet before handshaking."));
+			Log::error("GameNetwork", std::string("Server tried to send packet before handshaking."));
 			GameNet::disconnect();
 			return;
 		}
@@ -163,6 +180,7 @@ namespace GameNet
 		connection->setDisconnectHandler([](){
 			varIsConnected = false;
 			Log::info("GameNetwork", "Disconnected from the server.");
+			Game::onDisconnect();
 		});
 
 		connectCallback(true);
@@ -178,17 +196,20 @@ namespace GameNet
 		return handshakeDone;
 	}
 
-	void onPacketReceived(Network::PacketID id, const Network::Packet& packet)
+	static void onPacketReceived(Network::PacketID id, const Network::Packet& packet)
 	{
 		switch (id)
 		{
 		PKT_S2C_JUMP(PKT_S2C_LobbyData, onLobbyData);
 		PKT_S2C_JUMP(PKT_S2C_LobbyMsg, onLobbyMsg);
 		PKT_S2C_JUMP(PKT_S2C_PlayerState, onPlayerState);
+		PKT_S2C_JUMP(PKT_S2C_StartGame, onStartGame);
+		PKT_S2C_JUMP(PKT_S2C_TypeState, onTypeState);
+		PKT_S2C_JUMP(PKT_S2C_TypeEnd, onTypeEnd);
 		}
 	}
 
-	void onLobbyData(const PKT_S2C_LobbyData& packet)
+	static void onLobbyData(const PKT_S2C_LobbyData& packet)
 	{
 		u32 playerID = packet.getPlayerID();
 		Game::setPlayerID(playerID);
@@ -205,7 +226,7 @@ namespace GameNet
 
 		if (!localPlayer)
 		{
-			Log::error("GameNet", "The server did not send the local player information!");
+			Log::error("GameNetwork", "The server did not send the local player information!");
 			connection->close();
 			return;
 		}
@@ -217,12 +238,12 @@ namespace GameNet
 		lobbyMsgs.insert(lobbyMsgs.end(), newLobbyMsgs.begin(), newLobbyMsgs.end());
 	}
 
-	void onLobbyMsg(const PKT_S2C_LobbyMsg& packet)
+	static void onLobbyMsg(const PKT_S2C_LobbyMsg& packet)
 	{
 		Game::getLobbyMsgs().push_back(packet.getMsg());
 	}
 
-	void onPlayerState(const PKT_S2C_PlayerState& packet)
+	static void onPlayerState(const PKT_S2C_PlayerState& packet)
 	{
 		using PState = PKT_S2C_PlayerState;
 
@@ -239,7 +260,7 @@ namespace GameNet
 		Player* player = Game::getPlayerByID(playerID);
 		if (!player)
 		{
-			Log::info("GameNet", "Tried to change state of non-existing player.");
+			Log::info("GameNetwork", "Tried to change state of non-existing player.");
 			return;
 		}
 
@@ -254,5 +275,51 @@ namespace GameNet
 			player->setReady(packet.getReady());
 			return;
 		}
+	}
+
+	static void onStartGame(const PKT_S2C_StartGame& packet)
+	{
+		MiniGameType mgType = packet.getGameType();
+		switch (mgType)
+		{
+		case MiniGameType::Pong:
+			Game::switchScene<MGPongScene>();
+			return;
+		case MiniGameType::Rythm:
+			Game::switchScene<MGRythmScene>();
+			return;
+		case MiniGameType::TypeWrite:
+			Game::switchScene<MGTypeWriteScene>();
+			return;
+		default:
+			break;
+		}
+
+		Log::error("GameNetwork", "Invalid minigame start requested!");
+	}
+
+	static void onTypeState(const PKT_S2C_TypeState& packet)
+	{
+		auto* scene = Game::getScene<MGTypeWriteScene>();
+		if (!scene)
+			return;
+
+		bool isReady = packet.getIsReady();
+		if (isReady)
+		{
+			scene->onTypingStart(packet.getStoryID());
+			return;
+		}
+
+		scene->onTypingStats(*packet.getStats());
+	}
+
+	static void onTypeEnd(const PKT_S2C_TypeEnd& packet)
+	{
+		auto* scene = Game::getScene<MGTypeWriteScene>();
+		if (!scene)
+			return;
+
+		scene->onRoundEnd(packet.getStats(), packet.getFinalStats());
 	}
 }
