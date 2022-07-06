@@ -103,8 +103,12 @@ void Connection::sendPacket(const Packet& packet)
 		return;
 	}
 	auto* encPacket = new EncodedPacket(EncodedPacket::encode(packet, pktID));
-	bool writeInProgress = !m_writePkts.empty();
-	m_writePkts.emplace_back(encPacket);
+	bool writeInProgress;
+	{
+		const std::lock_guard<std::mutex> lock(m_writePktMutex);
+		writeInProgress = !m_writePkts.empty();
+		m_writePkts.emplace_back(encPacket);
+	}
 	if (!writeInProgress && m_connected)
 		writeOutgoingPacket();
 }
@@ -202,20 +206,29 @@ void Connection::readIncomingPacketBody()
 
 void Connection::writeOutgoingPacket()
 {
-	EncodedPacket& writePkt = *m_writePkts.front();
+	EncodedPacket* writePkt;
+	{
+		const std::lock_guard<std::mutex> lock(m_writePktMutex);
+		writePkt = m_writePkts.front().get();
+	}
 
 	asio::async_write(
 		*p->ctx.socket,
 		asio::buffer(
-			writePkt.data(),
-			writePkt.size()
+			writePkt->data(),
+			writePkt->size()
 		),
 		[this](std::error_code error, std::size_t /*size*/)
 		{
 			if (!error)
 			{
-				m_writePkts.pop_front();
-				if (!m_writePkts.empty())
+				bool writeInProgress;
+				{
+					const std::lock_guard<std::mutex> lock(m_writePktMutex);
+					m_writePkts.pop_front();
+					writeInProgress = !m_writePkts.empty();
+				}
+				if (writeInProgress)
 					writeOutgoingPacket();
 			}
 			else

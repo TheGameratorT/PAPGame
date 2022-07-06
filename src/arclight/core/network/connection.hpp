@@ -4,6 +4,7 @@
 #include <functional>
 #include <deque>
 #include <memory>
+#include <mutex>
 
 #include "packet.hpp"
 #include "packetlistspan.hpp"
@@ -83,6 +84,8 @@ protected:
 
 	EncodedPacket m_readPkt;
 	EncodedPacketQueue m_writePkts;
+
+	std::mutex m_writePktMutex;
 
 	void closeIfConnected();
 	virtual void terminate();
