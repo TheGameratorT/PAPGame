@@ -24,6 +24,7 @@ private:
 	mGUI::Container exitDialogCanvas;
 	mGUI::Container textDialogCanvas;
 	mGUI::Container connDialogCanvas;
+	mGUI::Container creditsDialogCanvas;
 
 	Texture titleTexture;
 	Texture bgTexture;
@@ -57,6 +58,9 @@ private:
 	Texture connDt1Texture;
 	Texture connDt2Texture;
 
+	Texture creditsBgTexture;
+	Texture creditsDtTexture;
+
 	mGUI::Image titleWidget;
 	mGUI::Image bgWidget;
 	mGUI::Button createGameButtonWidget;
@@ -81,6 +85,10 @@ private:
 	mGUI::Image connBgWidget;
 	mGUI::Image connDtWidget;
 
+	mGUI::Image creditsBgWidget;
+	mGUI::Image creditsDtWidget;
+	mGUI::Button creditsOkWidget;
+
 	float dialogAnimTimer = 0.0f;
 	float lastDialogAnimTimer = 0.0f;
 
@@ -89,6 +97,7 @@ private:
 	bool exitDialogOpen = false;
 	bool textDialogOpen = false;
 	bool connDialogOpen = false;
+	bool creditsDialogOpen = false;
 
 	bool switchingScene = false;
 
@@ -109,6 +118,10 @@ private:
 	void renderConnDialog(const Vec2i& area, float windowFactor);
 	void showConnDialog();
 	void closeConnDialog();
+
+	void renderCreditsDialog(const Vec2i& area, float windowFactor);
+	void showCreditsDialog();
+	void closeCreditsDialog();
 
 	void resetDialogAnim();
 	[[nodiscard]] bool isDialogOpen() const;

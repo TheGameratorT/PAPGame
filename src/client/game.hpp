@@ -15,6 +15,7 @@
 
 class Player;
 class PlayerInfo;
+class RoundStats;
 
 namespace Game
 {
@@ -88,6 +89,10 @@ namespace Game
 
 	void onInstructed();
 	void onPlaceListingClosed();
+
+	void setResultStats(const RoundStats* stats);
+	const RoundStats* getResultStats();
+	void clearResultStats();
 
 	// PLAYER MANAGEMENT -----------
 

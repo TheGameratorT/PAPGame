@@ -2,7 +2,6 @@
 
 #include "typestatestats.hpp"
 #include "network/packet.hpp"
-#include "network/ipacketserializeable.hpp"
 
 #include <string>
 

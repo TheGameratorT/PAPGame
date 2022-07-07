@@ -16,6 +16,11 @@ public:
 	u32 team;
 	bool ready;
 
+	PlayerInfo() = default;
+	PlayerInfo(u32 id, U8String name, u32 team, bool ready) :
+		id(id), name(std::move(name)), team(team), ready(ready)
+	{}
+
 	void packetWrite(Network::PacketBuffer& buf) const override;
 	void packetRead(Network::PacketBuffer& buf) override;
 };

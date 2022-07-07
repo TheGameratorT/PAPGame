@@ -64,6 +64,7 @@ void LobbyScene::onCreate()
 	settingsWidget.setTexture(&settingsTexture);
 
 	btn1Widget.setOnClick([](){ setPlayerReady(); });
+	exitWidget.setOnClick([](){ Game::reload(); });
 
 	auto sendMsgLambda = [this](){ sendMessage(); };
 
@@ -130,8 +131,10 @@ void LobbyScene::onUpdate()
 	if (switchingScene)
 	{
 		if (Fader::hasFadingFinished())
+		{
 			destroy();
-		return;
+			return;
+		}
 	}
 
 	lobbyMsgsCanvas.clear();

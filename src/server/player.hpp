@@ -7,6 +7,7 @@ class PlayerInfo;
 class PKT_C2S_LobbyMsg;
 class PKT_C2S_PlayerReady;
 class PKT_C2S_TypeState;
+class PKT_C2S_PongMove;
 
 class Player
 {
@@ -31,6 +32,11 @@ public:
 	constexpr void setPoints(u32 points) { m_points = points; }
 	[[nodiscard]] constexpr u32 getPoints() const { return m_points; }
 
+	constexpr void setGamePoints(u32 gamePoints) { m_gamePoints = gamePoints; }
+	[[nodiscard]] constexpr u32 getGamePoints() const { return m_gamePoints; }
+
+	void prepareForNextGame();
+
 	void onConnect();
 	void onDisconnect();
 	void onPacketReceived(Network::PacketID id, const Network::Packet& packet);
@@ -44,10 +50,12 @@ private:
 	u32 m_charsTyped;
 	u32 m_prevPlace;
 	u32 m_points;
+	u32 m_gamePoints;
 
 	void onLobbyMessage(const PKT_C2S_LobbyMsg& packet);
 	void onReady(const PKT_C2S_PlayerReady& packet);
 	void onTypeState(const PKT_C2S_TypeState& packet);
+	void onPongMove(const PKT_C2S_PongMove& packet);
 
 	[[nodiscard]] PlayerInfo createInfo() const;
 	void sendLobbyData();

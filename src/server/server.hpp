@@ -63,6 +63,10 @@ template<CC::BaseOfMiniGame T>
 inline T* getMinigame()
 { return static_cast<T*>(getMinigame(&T::profile)); }
 
+void endGame();
+
+Player* getPlayerByID(u32 varPlayerID);
+
 u32 getNextPlayerID();
 u32 getNextTaskID();
 u32 getRandom(u32 exclusiveMax);

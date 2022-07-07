@@ -237,7 +237,11 @@ static void generateRenderables(const RoundStats* stats)
 			u32 place = pe.place;
 
 			U8String newStr = p->getName();
-			newStr.append(Util::stringAsUtf8(" - " + std::to_string(place + 1) + placeSuffix[place > 3 ? 3 : place] + " place"));
+			newStr.append(Util::stringAsUtf8(
+				" - " +
+				std::to_string(place + 1) + placeSuffix[place > 3 ? 3 : place] + " place - " +
+				std::to_string(pe.points) + " points"
+			));
 			tb.setText(newStr);
 			tb.setFont("smooth");
 			tb.setReadOnly(true);

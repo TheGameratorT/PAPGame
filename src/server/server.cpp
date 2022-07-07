@@ -2,16 +2,22 @@
 
 #include <utility>
 
+#include "minigame/mgpong.hpp"
 #include "minigame/mgtypewriter.hpp"
+
+#include "network/packet.hpp"
+#include "network/packet/pkt_s2c_lobbymsg.hpp"
+#include "network/packet/pkt_s2c_startgame.hpp"
+#include "network/packet/pkt_s2c_gameend.hpp"
 
 #include "infogui.hpp"
 #include "time/timer.hpp"
 #include "acceptor.hpp"
-#include "network/packet.hpp"
-#include "network/packet/pkt_s2c_lobbymsg.hpp"
-#include "network/packet/pkt_s2c_startgame.hpp"
 #include "random/mersennetwister.hpp"
 #include "util.hpp"
+
+constexpr SizeT MinigamesToPlay = 2;
+constexpr u32 LobbyTickRate = 30;
 
 class ScheduledTask
 {
@@ -37,8 +43,8 @@ static bool serverRunning;
 static bool serverStopping;
 static bool shouldStopServer;
 
-static u32 tickRate = 30;
-static float tickDuration = 1.0f / static_cast<float>(tickRate);
+static u32 tickRate;
+static float tickDuration;
 
 static double lastTickTime;
 static float tickDelta;
@@ -48,6 +54,8 @@ int currentTps;
 bool gameStarted;
 MiniGame* currentMinigame;
 MiniGameType currentMinigameType;
+MiniGameType forcedMinigameType;
+SizeT playedMinigameCount;
 
 std::vector<std::unique_ptr<Player>> players;
 std::vector<U8String> lobbyChat;
@@ -65,6 +73,8 @@ bool init()
 	shouldStopServer = false;
 	gameStarted = false;
 	currentMinigame = nullptr;
+	forcedMinigameType = MiniGameType::Count;
+	playedMinigameCount = 0;
 
 	gui = new InfoGUI();
 	if (!gui->init())
@@ -98,6 +108,8 @@ bool init()
 	});
 
 	resetPlayedMinigames();
+
+	setTickRate(LobbyTickRate);
 
 	timer.start();
 	return true;
@@ -298,11 +310,26 @@ void executeCommand(const std::string& cmd)
 	{
 		sendChatMessage(Util::stringAsUtf8(cmd.substr(4)));
 	}
+	else if (cmd.starts_with("forcemg "))
+	{
+		u32 id = std::stoi(cmd.substr(8));
+		if (id < MiniGameType::Count)
+		{
+			sendChatMessage(Util::stringAsUtf8("Server: Forced minigame " + std::to_string(id)));
+			forcedMinigameType = static_cast<MiniGameType>(id);
+		}
+		else if (id == MiniGameType::Count)
+		{
+			sendChatMessage(u8"Server: Disabled forced minigame");
+			forcedMinigameType = MiniGameType::Count;
+		}
+	}
 }
 
 // Tells the current minigame that all the clients are ready
 void notifyClientsReady()
 {
+	resetClientsReady();
 	if (currentMinigame)
 		currentMinigame->onClientsReady();
 }
@@ -344,10 +371,23 @@ MiniGameType getNextRandomMinigame()
 
 void startRandomMinigame()
 {
-	resetClientsReady();
+	for (auto& p : players) // sum points from round
+	{
+		p->setGamePoints(p->getGamePoints() + p->getPoints());
+		p->setPoints(0);
+	}
 
-	//MiniGameType mgType = getNextRandomMinigame();
-	MiniGameType mgType = MiniGameType::TypeWrite;
+	if (MinigamesToPlay == playedMinigameCount)
+	{
+		endGame();
+		return;
+	}
+
+	MiniGameType mgType;
+	if (forcedMinigameType != MiniGameType::Count)
+		mgType = forcedMinigameType;
+	else
+		mgType = getNextRandomMinigame();
 	startMinigame(mgType);
 	gameStarted = true;
 }
@@ -356,15 +396,17 @@ void startMinigame(MiniGameType mgType)
 {
 	currentMinigameType = mgType;
 	playedMinigameList[mgType] = true;
+	playedMinigameCount++;
 
 	for (auto& p : players)
 		p->getClient()->sendPacket<PKT_S2C_StartGame>(mgType);
 
 	switch (mgType)
 	{
-	/*case MiniGameType::Pong:
+	case MiniGameType::Pong:
+		createMinigame<MGPong>();
 		return;
-	case MiniGameType::Rythm:
+	/*case MiniGameType::Rythm:
 		return;*/
 	case MiniGameType::TypeWrite:
 		createMinigame<MGTypeWriter>();
@@ -394,6 +436,44 @@ MiniGame* getMinigame(const MiniGame::Profile* minigame)
 {
 	if (currentMinigame && &currentMinigame->getProfile() == minigame)
 		return currentMinigame;
+	return nullptr;
+}
+
+void endGame()
+{
+	auto* finalStats = new RoundStats();
+	std::vector<Player*> pointSortedPlayers(players.size());
+	for (SizeT i = 0; i < players.size(); i++)
+		pointSortedPlayers[i] = players[i].get();
+	std::sort(pointSortedPlayers.begin(), pointSortedPlayers.end(), [](Player* a, Player* b){
+		return a->getGamePoints() > b->getGamePoints();
+	});
+	auto& finalPlayerInfo = finalStats->playerInfo;
+	finalPlayerInfo.resize(players.size());
+	for (SizeT i = 0; i < finalPlayerInfo.size(); i++)
+	{
+		finalPlayerInfo[i].playerID = pointSortedPlayers[i]->getID();
+		finalPlayerInfo[i].place = i;
+		finalPlayerInfo[i].points = pointSortedPlayers[i]->getGamePoints();
+	}
+	PKT_S2C_GameEnd gameEndPkt(finalStats);
+	for (auto& p : players)
+	{
+		p->getClient()->sendPacket(gameEndPkt);
+		p->prepareForNextGame();
+	}
+	playedMinigameCount = 0;
+
+	setTickRate(LobbyTickRate);
+}
+
+Player* getPlayerByID(u32 varPlayerID)
+{
+	for (auto& p : players)
+	{
+		if (p->getID() == varPlayerID)
+			return p.get();
+	}
 	return nullptr;
 }
 

@@ -12,13 +12,20 @@
 #include "network/packet/pkt_s2c_startgame.hpp"
 #include "network/packet/pkt_s2c_typestate.hpp"
 #include "network/packet/pkt_s2c_typeend.hpp"
+#include "network/packet/pkt_s2c_gameend.hpp"
+#include "network/packet/pkt_s2c_pongstart.hpp"
+#include "network/packet/pkt_s2c_pongmove.hpp"
+#include "network/packet/pkt_s2c_pongpoint.hpp"
+#include "network/packet/pkt_s2c_pongend.hpp"
 #include "scene/mgpongscene.hpp"
 #include "scene/mgrythmscene.hpp"
 #include "scene/mgtypewritescene.hpp"
+#include "scene/resultsscene.hpp"
 #include "gameinfo.hpp"
 #include "util/log.hpp"
 
 #include "player.hpp"
+#include "roundstats.hpp"
 
 using namespace Network;
 
@@ -31,6 +38,11 @@ static void onPlayerState(const PKT_S2C_PlayerState& packet);
 static void onStartGame(const PKT_S2C_StartGame& packet);
 static void onTypeState(const PKT_S2C_TypeState& packet);
 static void onTypeEnd(const PKT_S2C_TypeEnd& packet);
+static void onGameEnd(const PKT_S2C_GameEnd& packet);
+static void onPongStart(const PKT_S2C_PongStart& packet);
+static void onPongMove(const PKT_S2C_PongMove& packet);
+static void onPongPoint(const PKT_S2C_PongPoint& packet);
+static void onPongEnd(const PKT_S2C_PongEnd& packet);
 }
 
 class PacketListener
@@ -206,6 +218,11 @@ namespace GameNet
 		PKT_S2C_JUMP(PKT_S2C_StartGame, onStartGame);
 		PKT_S2C_JUMP(PKT_S2C_TypeState, onTypeState);
 		PKT_S2C_JUMP(PKT_S2C_TypeEnd, onTypeEnd);
+		PKT_S2C_JUMP(PKT_S2C_GameEnd, onGameEnd);
+		PKT_S2C_JUMP(PKT_S2C_PongStart, onPongStart);
+		PKT_S2C_JUMP(PKT_S2C_PongMove, onPongMove);
+		PKT_S2C_JUMP(PKT_S2C_PongPoint, onPongPoint);
+		PKT_S2C_JUMP(PKT_S2C_PongEnd, onPongEnd);
 		}
 	}
 
@@ -285,9 +302,9 @@ namespace GameNet
 		case MiniGameType::Pong:
 			Game::switchScene<MGPongScene>();
 			return;
-		case MiniGameType::Rythm:
+		/*case MiniGameType::Rythm:
 			Game::switchScene<MGRythmScene>();
-			return;
+			return;*/
 		case MiniGameType::TypeWrite:
 			Game::switchScene<MGTypeWriteScene>();
 			return;
@@ -317,6 +334,50 @@ namespace GameNet
 	static void onTypeEnd(const PKT_S2C_TypeEnd& packet)
 	{
 		auto* scene = Game::getScene<MGTypeWriteScene>();
+		if (!scene)
+			return;
+
+		scene->onRoundEnd(packet.getStats(), packet.getFinalStats());
+	}
+
+	static void onGameEnd(const PKT_S2C_GameEnd& packet)
+	{
+		for (auto& p : Game::getPlayers())
+			p->setReady(false);
+		Game::setResultStats(new RoundStats(*packet.getStats()));
+		Game::switchScene<ResultsScene>();
+	}
+
+	static void onPongStart(const PKT_S2C_PongStart& packet)
+	{
+		auto* scene = Game::getScene<MGPongScene>();
+		if (!scene)
+			return;
+
+		scene->onGameStart(packet.getPlayer1(), packet.getPlayer2());
+	}
+
+	static void onPongMove(const PKT_S2C_PongMove& packet)
+	{
+		auto* scene = Game::getScene<MGPongScene>();
+		if (!scene)
+			return;
+
+		scene->onMoveObject(packet.getMovedObject(), packet.getPosition(), packet.getDirection());
+	}
+
+	static void onPongPoint(const PKT_S2C_PongPoint& packet)
+	{
+		auto* scene = Game::getScene<MGPongScene>();
+		if (!scene)
+			return;
+
+		scene->onGamePoint(packet.getIsFinal(), packet.getPaddleID());
+	}
+
+	static void onPongEnd(const PKT_S2C_PongEnd& packet)
+	{
+		auto* scene = Game::getScene<MGPongScene>();
 		if (!scene)
 			return;
 

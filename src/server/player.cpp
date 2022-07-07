@@ -9,6 +9,7 @@
 #include "network/packet/pkt_c2s_lobbymsg.hpp"
 #include "network/packet/pkt_c2s_playerready.hpp"
 #include "network/packet/pkt_c2s_typestate.hpp"
+#include "network/packet/pkt_c2s_pongmove.hpp"
 #include "network/packet/pkt_s2c_lobbydata.hpp"
 #include "network/packet/pkt_s2c_playerstate.hpp"
 #include "math/math.hpp"
@@ -16,6 +17,7 @@
 #include "util.hpp"
 
 #include "minigame/mgtypewriter.hpp"
+#include "minigame/mgpong.hpp"
 
 constexpr SizeT MAX_MSG_HISTORY_COUNT = 12;
 
@@ -25,7 +27,10 @@ Player::Player(Network::ConnectedClientPtr client, U8String name) :
 	m_name(std::move(name)),
 	m_isReady(false),
 	m_gameReady(false),
-	m_charsTyped(0)
+	m_charsTyped(0),
+	m_prevPlace(0),
+	m_points(0),
+	m_gamePoints(0)
 {}
 
 Player::~Player() = default;
@@ -74,6 +79,7 @@ void Player::onPacketReceived(Network::PacketID id, const Network::Packet& packe
 	PKT_C2S_JUMP(PKT_C2S_LobbyMsg, onLobbyMessage);
 	PKT_C2S_JUMP(PKT_C2S_PlayerReady, onReady);
 	PKT_C2S_JUMP(PKT_C2S_TypeState, onTypeState);
+	PKT_C2S_JUMP(PKT_C2S_PongMove, onPongMove);
 	}
 }
 
@@ -98,13 +104,15 @@ void Player::onReady(const PKT_C2S_PlayerReady& packet)
 		{
 			m_gameReady = true;
 
+			auto& players = Server::getPlayers();
+
 			bool allReady = true;
-			for (auto& p : Server::getPlayers())
+			for (auto& p : players)
 			{
 				if (!p->getGameReady())
 					allReady = false;
 			}
-			if (allReady)
+			if (allReady && players.size() > 1) // If everyone ready and more than 2 players playing
 				Server::notifyClientsReady();
 		}
 	}
@@ -122,7 +130,11 @@ void Player::onReady(const PKT_C2S_PlayerReady& packet)
 		}
 
 		if (allReady)
+		{
 			Server::startRandomMinigame();
+			for (auto& p : Server::getPlayers())
+				p->m_isReady = false;
+		}
 	}
 }
 
@@ -136,6 +148,13 @@ void Player::onTypeState(const PKT_C2S_TypeState& packet)
 		return;
 	}
 	m_charsTyped = charsTyped;
+}
+
+void Player::onPongMove(const PKT_C2S_PongMove& packet)
+{
+	auto* minigame = Server::getMinigame<MGPong>();
+	if (minigame)
+		minigame->onPlayerMove(this, PongMoveDirection(packet.getMoveDirection()));
 }
 
 PlayerInfo Player::createInfo() const
@@ -170,4 +189,10 @@ void Player::sendLobbyData()
 		sendLobbyMsgs[j] = lobbyMsgs[i];
 
 	m_client->sendPacket<PKT_S2C_LobbyData>(m_id, playerInfos, sendLobbyMsgs);
+}
+
+void Player::prepareForNextGame()
+{
+	m_points = 0;
+	m_gamePoints = 0;
 }

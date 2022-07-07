@@ -25,6 +25,11 @@ constexpr float NICKNDIAGBTN2_IMG_ARATIO = float(NICKNDIAGBTN2_IMG_SIZE.x) / flo
 
 constexpr float CONNDIAG_IMG_ARATIO = 302.0f / 121.0f;
 
+constexpr Vec2i CREDITS_IMG_SIZE = { 341, 256 };
+constexpr float CREDITS_IMG_ARATIO = float(CREDITS_IMG_SIZE.x) / float(CREDITS_IMG_SIZE.y);
+constexpr Vec2i CREDITSOK_IMG_SIZE = { 27, 19 };
+constexpr float CREDITSOK_IMG_ARATIO = float(CREDITSOK_IMG_SIZE.x) / float(CREDITSOK_IMG_SIZE.y);
+
 IMPL_OBJECT(TitleScene)
 
 void TitleScene::onCreate()
@@ -59,6 +64,8 @@ void TitleScene::onCreate()
 	connBgTexture.load("@/title/conn_diag.png", GLE::TextureFilter::None);
 	connDt1Texture.load("@/title/conn_diag_1.png", GLE::TextureFilter::None);
 	connDt2Texture.load("@/title/conn_diag_2.png", GLE::TextureFilter::None);
+	creditsBgTexture.load("@/title/cred_diag.png", GLE::TextureFilter::None);
+	creditsDtTexture.load("@/title/cred_txt.png");
 
 	titleWidget.setTexture(&titleTexture);
 	bgWidget.setTexture(&bgTexture);
@@ -90,6 +97,8 @@ void TitleScene::onCreate()
 	txtbNWidget.setHoverTexture(&txtb2hTexture);
 	txtbNWidget.setHeldTexture(&txtb2cTexture);
 	connBgWidget.setTexture(&connBgTexture);
+	creditsBgWidget.setTexture(&creditsBgTexture);
+	creditsDtWidget.setTexture(&creditsDtTexture);
 
 	bgWidget.setZIndex(0);
 	createGameTextWidget.setZIndex(1010);
@@ -112,6 +121,9 @@ void TitleScene::onCreate()
 	exitWidget.setOnClick([this](){ showExitDialog(); });
 	edbYWidget.setOnClick([](){ Game::quit(); });
 	edbNWidget.setOnClick([this](){ closeExitDialog(); });
+
+	aboutWidget.setOnClick([this](){ showCreditsDialog(); });
+	creditsOkWidget.setOnClick([this](){ closeCreditsDialog(); });
 
 	createGameButtonWidget.setOnClick([this](){
 		isCreating = true;
@@ -157,6 +169,13 @@ void TitleScene::onCreate()
 	connDialogCanvas.setZIndex(1051);
 	connDialogCanvas.setVisible(false);
 	canvas.addWidget(connDialogCanvas);
+
+	creditsDialogCanvas.addWidget(creditsBgWidget);
+	creditsDialogCanvas.addWidget(creditsDtWidget);
+	creditsDialogCanvas.addWidget(creditsOkWidget);
+	creditsDialogCanvas.setZIndex(1051);
+	creditsDialogCanvas.setVisible(false);
+	canvas.addWidget(creditsDialogCanvas);
 
 	Game::getGUI().getContainer().addWidget(canvas);
 }
@@ -250,6 +269,8 @@ void TitleScene::onRender()
 		renderTextDialog(area, windowFactor);
 	if (connDialogOpen)
 		renderConnDialog(area, windowFactor);
+	if (creditsDialogOpen)
+		renderCreditsDialog(area, windowFactor);
 }
 
 void TitleScene::onDestroy()
@@ -576,6 +597,58 @@ void TitleScene::closeConnDialog()
 	connDialogOpen = false;
 }
 
+void TitleScene::renderCreditsDialog(const Vec2i& area, float windowFactor)
+{
+	float diagSizeGrowthMul = 4.5f;
+	float diagSizeMul = (windowFactor / diagSizeGrowthMul) + (1.0f - (1.0f / diagSizeGrowthMul));
+
+	float zoom = 1.25f;
+
+	diagSizeMul *= Math::lerp(lastDialogAnimTimer, dialogAnimTimer, Game::getTickAlpha()) * zoom;
+
+	i32 diagWidth = std::lroundl(CREDITS_IMG_SIZE.x * diagSizeMul);
+	i32 diagHeight = std::lroundl(1.0f / CREDITS_IMG_ARATIO * float(diagWidth));
+
+	i32 diagX = (area.x - diagWidth) / 2;
+	i32 diagY = (area.y - diagHeight) / 2;
+
+	creditsBgWidget.setBounds({diagX, diagY, diagWidth, diagHeight});
+	creditsDtWidget.setBounds(creditsBgWidget.getBounds());
+
+	creditsOkWidget.setBounds({
+		diagX + std::lroundl(267.0f * diagSizeMul),
+		diagY + std::lroundl(205.0f * diagSizeMul),
+		std::lroundl(27.0f * diagSizeMul),
+		std::lroundl(19.0f * diagSizeMul)
+	});
+}
+
+void TitleScene::showCreditsDialog()
+{
+	if (creditsDialogOpen)
+		return;
+
+	resetDialogAnim();
+	creditsDialogOpen = true;
+
+	auto area = Vec2i(Game::getFramebufferSize());
+	float windowFactor = (float(area.x * area.y) / BASE_WND_AREA);
+	renderConnDialog(area, windowFactor);
+
+	setCommonWidgetsEnabled(false);
+
+	creditsDialogCanvas.setVisible(true);
+}
+
+void TitleScene::closeCreditsDialog()
+{
+	creditsDialogCanvas.setVisible(false);
+
+	setCommonWidgetsEnabled(true);
+
+	creditsDialogOpen = false;
+}
+
 void TitleScene::resetDialogAnim()
 {
 	dialogAnimTimer = 0.0f;
@@ -584,7 +657,7 @@ void TitleScene::resetDialogAnim()
 
 bool TitleScene::isDialogOpen() const
 {
-	return exitDialogOpen || textDialogOpen || connDialogOpen;
+	return exitDialogOpen || textDialogOpen || connDialogOpen || creditsDialogOpen;
 }
 
 void TitleScene::createServerGame()

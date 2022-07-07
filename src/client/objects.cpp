@@ -8,6 +8,7 @@
 #include "scene/mgpongscene.hpp"
 #include "scene/mgrythmscene.hpp"
 #include "scene/mgtypewritescene.hpp"
+#include "scene/resultsscene.hpp"
 
 template<typename ...P>
 static consteval auto createObjectTable()
@@ -20,7 +21,8 @@ static constexpr auto ObjectProfilesA =
 		LobbyScene,
 		MGPongScene,
 		MGRythmScene,
-		MGTypeWriteScene
+		MGTypeWriteScene,
+		ResultsScene
 	>();
 
 namespace Objects

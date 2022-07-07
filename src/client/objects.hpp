@@ -9,6 +9,7 @@ class LobbyScene;
 class MGPongScene;
 class MGRythmScene;
 class MGTypeWriteScene;
+class ResultsScene;
 
 #define OBJECTS_DEFINE_ID(name, id) if (std::is_same_v<name, T>) return id;
 
@@ -28,6 +29,7 @@ namespace Objects
 		OBJECTS_DEFINE_ID(MGPongScene, 3)
 		OBJECTS_DEFINE_ID(MGRythmScene, 4)
 		OBJECTS_DEFINE_ID(MGTypeWriteScene, 5)
+		OBJECTS_DEFINE_ID(ResultsScene, 6)
 		return -1;
 	}
 }

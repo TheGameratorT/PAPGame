@@ -12,6 +12,7 @@ class PKT_C2S_Handshake;
 class PKT_C2S_LobbyMsg;
 class PKT_C2S_PlayerReady;
 class PKT_C2S_TypeState;
+class PKT_C2S_PongMove;
 
 class PKT_S2C_Handshake;
 class PKT_S2C_Disconnect;
@@ -21,6 +22,11 @@ class PKT_S2C_PlayerState;
 class PKT_S2C_StartGame;
 class PKT_S2C_TypeState;
 class PKT_S2C_TypeEnd;
+class PKT_S2C_GameEnd;
+class PKT_S2C_PongStart;
+class PKT_S2C_PongMove;
+class PKT_S2C_PongPoint;
+class PKT_S2C_PongEnd;
 
 namespace PacketTable
 {
@@ -34,6 +40,7 @@ namespace PacketTable
 		PacketTable_DEFINE_ID(PKT_C2S_LobbyMsg, 1)
 		PacketTable_DEFINE_ID(PKT_C2S_PlayerReady, 2)
 		PacketTable_DEFINE_ID(PKT_C2S_TypeState, 3)
+		PacketTable_DEFINE_ID(PKT_C2S_PongMove, 4)
 		return -1;
 	}
 
@@ -48,6 +55,11 @@ namespace PacketTable
 		PacketTable_DEFINE_ID(PKT_S2C_StartGame, 5)
 		PacketTable_DEFINE_ID(PKT_S2C_TypeState, 6)
 		PacketTable_DEFINE_ID(PKT_S2C_TypeEnd, 7)
+		PacketTable_DEFINE_ID(PKT_S2C_GameEnd, 8)
+		PacketTable_DEFINE_ID(PKT_S2C_PongStart, 9)
+		PacketTable_DEFINE_ID(PKT_S2C_PongMove, 10)
+		PacketTable_DEFINE_ID(PKT_S2C_PongPoint, 11)
+		PacketTable_DEFINE_ID(PKT_S2C_PongEnd, 12)
 		return -1;
 	}
 }

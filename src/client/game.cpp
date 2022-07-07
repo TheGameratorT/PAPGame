@@ -13,13 +13,18 @@
 #include "player.hpp"
 #include "configfile.hpp"
 #include "objects.hpp"
-#include "scene/splashscene.hpp"
-#include "scene/titlescene.hpp"
-#include "scene/lobbyscene.hpp"
 #include "render/renderer.hpp"
 #include "render/fader.hpp"
 #include "font/truetype/loader.hpp"
+#include "roundstats.hpp"
+
 #include "network/gamenet.hpp"
+
+#include "scene/splashscene.hpp"
+#include "scene/titlescene.hpp"
+#include "scene/lobbyscene.hpp"
+#include "scene/mgpongscene.hpp"
+#include "scene/resultsscene.hpp"
 
 #include "screen/loadingscreen.hpp"
 #include "screen/connectionlostscreen.hpp"
@@ -88,6 +93,8 @@ namespace Game
 	std::vector<U8String> lobbyMsgs;
 
 	U8String playerName;
+
+	const RoundStats* resultStats = nullptr;
 
 	bool init()
 	{
@@ -191,6 +198,15 @@ namespace Game
 				Game::reload();
 		});
 
+		bindKey(KeyCode::F8, [](KeyState state){
+			if (state == KeyState::Pressed)
+				Game::switchScene<MGPongScene>();
+		});
+		bindKey(KeyCode::F7, [](KeyState state){
+			if (state == KeyState::Pressed)
+				Game::switchScene<ResultsScene>();
+		});
+
 		config.save();
 
 		createScene<SplashScene>();
@@ -282,6 +298,7 @@ namespace Game
 			currentScene->onDestroy();
 			delete currentScene;
 		}
+		players.clear();
 		PlaceListingScreen::close();
 		WaitingForPlayersScreen::close();
 		InstructionScreen::close();
@@ -503,6 +520,8 @@ namespace Game
 
 	void connect(const std::string& address, u16 port)
 	{
+		// TODO: Game::connect can throw an exception in the tcp::resolver if the address is invalid
+
 		GameNet::connect(address, port, [](bool success){
 			if (success)
 			{
@@ -539,6 +558,23 @@ namespace Game
 	{
 		if (currentScene)
 			currentScene->onPlaceListingClosed();
+	}
+
+	void setResultStats(const RoundStats* stats)
+	{
+		delete resultStats;
+		resultStats = stats;
+	}
+
+	const RoundStats* getResultStats()
+	{
+		return resultStats;
+	}
+
+	void clearResultStats()
+	{
+		delete resultStats;
+		resultStats = nullptr;
 	}
 
 	const U8String& getPlayerName() { return playerName; }

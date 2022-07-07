@@ -7,12 +7,6 @@
 #include "network/clientconnection.hpp"
 #include "locale/unicodestring.hpp"
 
-class PKT_S2C_LobbyData;
-class PKT_S2C_LobbyMsg;
-class PKT_S2C_PlayerState;
-class PKT_S2C_StartGame;
-class PKT_S2C_TypeState;
-
 namespace GameNet
 {
 	using ConnectCallback = std::function<void(bool)>;

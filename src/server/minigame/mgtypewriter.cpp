@@ -6,12 +6,16 @@
 #include "util/log.hpp"
 #include "util.hpp"
 
+constexpr u32 TICK_RATE = 30;
+constexpr float TICK_DURATION = 1.0f / TICK_RATE;
 constexpr u32 STORIES_PER_ROUND = 3;
 
 IMPL_MINIGAME(MGTypeWriter, "Type Writer")
 
 void MGTypeWriter::onCreate()
 {
+	Server::setTickRate(TICK_RATE);
+
 	stories = TypeWriterStory::loadStories("@/typewriter/textdata.txt");
 	for (auto& story : stories)
 		Log::info("MGTypeWriter",
@@ -74,8 +78,6 @@ void MGTypeWriter::onUpdate()
 		playingStory = false;
 		playedRounds++;
 
-		Server::resetClientsReady();
-
 		bool wasLastRound = playedRounds == STORIES_PER_ROUND;
 
 		auto* stats = new RoundStats();
@@ -85,12 +87,12 @@ void MGTypeWriter::onUpdate()
 		playerInfo.resize(placeSortedPlayers.size());
 		for (SizeT i = 0; i < playerInfo.size(); i++)
 		{
-			u32 points = placeSortedPlayers[i]->getPoints() + (100 - (i * 5));
-			placeSortedPlayers[i]->setPoints(points);
+			u32 earnedPoints = 100 - (i * 5);
+			placeSortedPlayers[i]->setPoints(placeSortedPlayers[i]->getPoints() + earnedPoints);
 			placeSortedPlayers[i]->setCharsTyped(0);
 			playerInfo[i].playerID = placeSortedPlayers[i]->getID();
 			playerInfo[i].place = i;
-			playerInfo[i].points = points;
+			playerInfo[i].points = earnedPoints;
 		}
 
 		if (wasLastRound)
@@ -135,7 +137,6 @@ void MGTypeWriter::onClientsReady()
 		return;
 	}
 
-	Log::info("MGTypeWriter", "Everyone is ready!");
 	startStory();
 }
 
@@ -153,8 +154,10 @@ void MGTypeWriter::decideStory()
 
 void MGTypeWriter::startStory()
 {
+	Log::info("MGTypeWriter", "Deciding story...");
 	decideStory();
 
+	Log::info("MGTypeWriter", "Starting story: " + Util::utf8AsString(stories[curStory].getTitle()));
 	for (auto& p : Server::getPlayers())
 	{
 		// TODO: Check if current story was decided before all clients ready

@@ -3,7 +3,7 @@
 enum MiniGameType
 {
 	Pong,
-	Rythm,
+	//Rythm,
 	TypeWrite,
 	Count
 };

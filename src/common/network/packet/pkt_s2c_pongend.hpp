@@ -5,16 +5,16 @@
 
 #include <string>
 
-class PKT_S2C_TypeEnd : public Network::Packet
+class PKT_S2C_PongEnd : public Network::Packet
 {
 public:
 	DECL_PACKET()
 
 	// if wasLastRound is true then finalStats must not be nullptr
-	PKT_S2C_TypeEnd(bool wasLastRound, RoundStats* stats, RoundStats* finalStats);
-	~PKT_S2C_TypeEnd() override;
+	PKT_S2C_PongEnd(bool wasLastRound, RoundStats* stats, RoundStats* finalStats);
+	~PKT_S2C_PongEnd() override;
 
-	explicit PKT_S2C_TypeEnd(Network::PacketBuffer& buf);
+	explicit PKT_S2C_PongEnd(Network::PacketBuffer& buf);
 	void serialize(Network::PacketBuffer& buf) const override;
 
 	[[nodiscard]] constexpr bool getWasLastRound() const { return m_wasLastRound; }
